@@ -1,0 +1,61 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\MemberController;
+use App\Http\Controllers\Api\ReportController;
+use Illuminate\Http\Request;
+
+// Public routes
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login',    [AuthController::class, 'login']);
+
+// Protected routes
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/admin/users', function (Request $request) {
+        if (!$request->user()->isAdmin()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        $users = \App\Models\User::paginate(20);
+        return response()->json($users);
+    });
+
+    Route::delete('/admin/users/{user}', function (Request $request, \App\Models\User $user) {
+        if (!$request->user()->isAdmin()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        if ($request->user()->id === $user->id) {
+            return response()->json(['message' => 'Cannot delete yourself'], 422);
+        }
+        $user->delete();
+        return response()->json(['message' => 'User deleted']);
+    });
+
+    // Auth
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me',      [AuthController::class, 'me']);
+
+    // Projects
+    Route::apiResource('projects', ProjectController::class);
+
+    // Tasks per project
+   Route::apiResource('projects.tasks', TaskController::class)->scoped([
+    'task' => 'project',
+]);
+
+    // Comments per task
+    Route::post('tasks/{task}/comments',              [TaskController::class, 'addComment']);
+    Route::delete('tasks/{task}/comments/{comment}',  [TaskController::class, 'deleteComment']);
+
+    // Members
+    Route::get('projects/{project}/members',          [MemberController::class, 'index']);
+    Route::post('projects/{project}/members',         [MemberController::class, 'store']);
+    Route::delete('projects/{project}/members/{user}',[MemberController::class, 'destroy']);
+
+    // Reports
+    Route::get('reports/projects',                    [ReportController::class, 'projectSummary']);
+    Route::get('reports/projects/{project}',          [ReportController::class, 'projectDetail']);
+});
