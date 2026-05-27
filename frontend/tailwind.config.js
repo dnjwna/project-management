@@ -5,9 +5,6 @@ export default {
     "./index.html",
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
-  safelist: [
-    'flex', 'flex-row', 'items-center', 'gap-3'
-  ],
   theme: {
     extend: {
       colors: {
@@ -32,9 +29,7 @@ export default {
           DEFAULT: "oklch(var(--accent))",
           foreground: "oklch(var(--accent-foreground))",
         },
-        destructive: {
-          DEFAULT: "oklch(var(--destructive))",
-        },
+        destructive: { DEFAULT: "oklch(var(--destructive))" },
         card: {
           DEFAULT: "oklch(var(--card))",
           foreground: "oklch(var(--card-foreground))",
@@ -43,11 +38,17 @@ export default {
           DEFAULT: "oklch(var(--popover))",
           foreground: "oklch(var(--popover-foreground))",
         },
+        // Custom app colors
+        cream: "#F8F9FA",
+        'app-dark': "#1E293B",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
     },
   },

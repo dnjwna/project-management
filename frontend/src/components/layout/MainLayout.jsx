@@ -1,10 +1,10 @@
-import Sidebar from './Sidebar'
+import Navbar from './Navbar'
 
 export default function MainLayout({ children }) {
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <Sidebar />
-      <main className="flex-1 overflow-auto">
+    <div className="min-h-screen bg-[#F8F9FA]">
+      <Navbar />
+      <main className="max-w-7xl mx-auto px-6 py-8">
         {children}
       </main>
     </div>

@@ -4,29 +4,28 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchProjectDetail, updateProject } from '../../features/projects/projectSlice'
 import { useAuth } from '../../hooks/useAuth'
 import api from '../../utils/axios'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import Modal from '../../components/ui/Modal'
 import Spinner from '../../components/ui/Spinner'
 import { formatDate } from '../../utils/format'
-import { ArrowLeft, Plus, X, Pencil, ExternalLink, Calendar, User, } from 'lucide-react'
+import { ArrowLeft, Plus, X, Pencil, ExternalLink, Calendar, User, Clock } from 'lucide-react'
 
-const avatarColors = ['bg-teal-500', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500']
+const avatarColors = ['bg-emerald-500', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500']
 const getColor = (name) => avatarColors[(name?.charCodeAt(0) || 0) % avatarColors.length]
 const getInitials = (name) => name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?'
 
 const statusVariant = {
-  on_track: 'bg-teal-100 text-teal-700 border-teal-200',
-  delayed: 'bg-red-100 text-red-600 border-red-200',
-  completed: 'bg-blue-100 text-blue-700 border-blue-200',
+  on_track: 'bg-emerald-100 text-emerald-700',
+  delayed: 'bg-red-100 text-red-600',
+  completed: 'bg-slate-100 text-slate-600',
 }
 
 const taskStatusVariant = {
   todo: 'bg-slate-100 text-slate-600',
   in_progress: 'bg-orange-100 text-orange-600',
-  done: 'bg-teal-100 text-teal-700',
+  done: 'bg-emerald-100 text-emerald-700',
   blocked: 'bg-red-100 text-red-600',
 }
 
@@ -113,169 +112,176 @@ export default function ProjectDetail() {
     }
   }
 
-  const inputClass = "w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500 text-sm"
+  const inputClass = "w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 text-sm"
 
-  if (loading) return <div className="p-8"><Spinner /></div>
-  if (!project) return <p className="p-8 text-slate-400">Project not found.</p>
+  if (loading) return <div className="py-20"><Spinner /></div>
+  if (!project) return <p className="text-slate-400">Project not found.</p>
 
   const progress = project.progress ?? 0
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div>
       {/* Back */}
       <Button variant="ghost" size="sm" onClick={() => navigate('/projects')}
-        className="text-slate-400 hover:text-slate-600 gap-2 mb-6 -ml-2">
-        <ArrowLeft size={16} /> Back to Projects
+        className="text-slate-400 hover:text-slate-600 gap-2 mb-6 -ml-2 rounded-xl">
+        <ArrowLeft size={16} /> Back
       </Button>
 
-      {/* Header Card */}
-      <Card className="border-slate-200 shadow-none mb-6">
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-slate-800">{project.name}</h1>
-                <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${statusVariant[project.status] || ''}`}>
-                  {project.status?.replace('_', ' ')}
-                </span>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Header Card */}
+          <div className={`rounded-2xl p-6 ${statusVariant[project.status] ? 'bg-emerald-100' : 'bg-white'} ${project.status === 'delayed' ? 'bg-red-50' : ''} ${project.status === 'completed' ? 'bg-slate-100' : ''}`}>
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2.5 mb-2">
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${statusVariant[project.status]}`}>
+                    {project.status?.replace('_', ' ')}
+                  </span>
+                </div>
+                <h1 className="text-2xl font-bold text-app-dark mb-1">{project.name}</h1>
+                <p className="text-slate-500 text-sm">{project.description}</p>
               </div>
-              <p className="text-slate-500 text-sm mb-3">{project.description}</p>
-              <div className="flex gap-4 text-xs text-slate-400">
-                <span className="flex items-center gap-1">
-                  <Calendar size={12} />
-                  {formatDate(project.start_date)} → {formatDate(project.end_date)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <User size={12} />
-                  {project.creator?.name}
-                </span>
+              <div className="flex gap-2 shrink-0">
+                {isAdmin && (
+                  <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}
+                    className="gap-2 bg-white/70 border-0 rounded-xl">
+                    <Pencil size={14} /> Edit
+                  </Button>
+                )}
+                <Button size="sm" onClick={() => navigate(`/projects/${id}/tasks`)}
+                  className="bg-app-dark hover:bg-slate-700 text-white gap-2 rounded-xl">
+                  <ExternalLink size={14} /> Open Board
+                </Button>
               </div>
             </div>
-            <div className="flex gap-2 shrink-0">
-              {isAdmin && (
-                <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}
-                  className="gap-2 text-slate-600 border-slate-200">
-                  <Pencil size={14} /> Edit
-                </Button>
-              )}
-              <Button size="sm" onClick={() => navigate(`/projects/${id}/tasks`)}
-                className="bg-teal-500 hover:bg-teal-600 text-white gap-2">
-                <ExternalLink size={14} /> Open Board
+
+            {/* Progress */}
+            <div className="mt-2">
+              <div className="flex items-end gap-3 mb-2">
+                <p className="text-5xl font-bold text-app-dark">{progress}%</p>
+                <p className="text-sm text-slate-500 mb-2">overall progress</p>
+              </div>
+              <div className="h-2 bg-white/60 rounded-full overflow-hidden">
+                <div className="h-full bg-app-dark rounded-full transition-all duration-500"
+                  style={{ width: `${progress}%` }} />
+              </div>
+            </div>
+
+            {/* Meta */}
+            <div className="flex gap-4 mt-4 text-xs text-slate-500">
+              <span className="flex items-center gap-1">
+                <Calendar size={11} />
+                {formatDate(project.start_date)} → {formatDate(project.end_date)}
+              </span>
+              <span className="flex items-center gap-1">
+                <User size={11} />
+                {project.creator?.name}
+              </span>
+            </div>
+          </div>
+
+          {/* Tasks */}
+          <div className="bg-white rounded-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <h2 className="font-semibold text-app-dark">Recent Tasks</h2>
+              <Button variant="ghost" size="sm" onClick={() => navigate(`/projects/${id}/tasks`)}
+                className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 gap-1 rounded-xl text-sm">
+                Open Board <ExternalLink size={13} />
               </Button>
             </div>
-          </div>
-
-          {/* Progress */}
-          <div className="mt-5">
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-slate-500 font-medium">Overall Progress</span>
-              <span className="font-bold text-teal-600">{progress}%</span>
-            </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-teal-500 rounded-full transition-all duration-500"
-                style={{ width: `${progress}%` }} />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Tasks */}
-        <div className="lg:col-span-2">
-          <Card className="border-slate-200 shadow-none">
-            <CardHeader className="pb-0">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-semibold text-slate-700">Recent Tasks</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => navigate(`/projects/${id}/tasks`)}
-                  className="text-teal-500 hover:text-teal-600 hover:bg-teal-50 text-sm gap-1">
-                  View board <ExternalLink size={13} />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-3 px-0">
+            <div className="divide-y divide-slate-50">
               {project.tasks?.length === 0 && (
                 <p className="px-6 py-8 text-center text-slate-400 text-sm">No tasks yet.</p>
               )}
-              {project.tasks?.slice(0, 6).map((task, i) => (
-                <div key={task.id}>
-                  <div className="px-6 py-3.5 flex items-center justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-700 truncate">{task.title}</p>
-                      {task.assignee && (
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <Avatar className="w-4 h-4">
-                            <AvatarFallback className={`${getColor(task.assignee.name)} text-white text-xs`}>
-                              {getInitials(task.assignee.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-xs text-slate-400">{task.assignee.name}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${priorityVariant[task.priority]}`}>
-                        {task.priority}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${taskStatusVariant[task.status]}`}>
-                        {task.status?.replace('_', ' ')}
-                      </span>
-                    </div>
+              {project.tasks?.slice(0, 6).map((task) => (
+                <div key={task.id} className="px-6 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-app-dark truncate">{task.title}</p>
+                    {task.assignee && (
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <Avatar className="w-4 h-4">
+                          <AvatarFallback className={`${getColor(task.assignee.name)} text-white text-xs`}>
+                            {getInitials(task.assignee.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-slate-400">{task.assignee.name}</span>
+                      </div>
+                    )}
                   </div>
-                  {i < (project.tasks?.slice(0, 6).length - 1) && <Separator />}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${priorityVariant[task.priority]}`}>
+                      {task.priority}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${taskStatusVariant[task.status]}`}>
+                      {task.status?.replace('_', ' ')}
+                    </span>
+                  </div>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
-        {/* Members */}
-        <div>
-          <Card className="border-slate-200 shadow-none">
-            <CardHeader className="pb-0">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-semibold text-slate-700">Members</CardTitle>
-                {isAdmin && (
-                  <Button variant="ghost" size="sm" onClick={() => { setShowMemberModal(true); fetchUsers() }}
-                    className="text-teal-500 hover:text-teal-600 hover:bg-teal-50 gap-1 h-8 w-8 p-0">
-                    <Plus size={16} />
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="pt-3 px-0">
-              {members.map((m, i) => (
-                <div key={m.id}>
-                  <div className="px-5 py-3 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className={`${getColor(m.user?.name)} text-white text-xs font-semibold`}>
-                          {getInitials(m.user?.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium text-slate-700">{m.user?.name}</p>
-                        <p className="text-xs text-slate-400">{m.user?.email}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize
-                        ${m.role === 'manager' ? 'bg-teal-100 text-teal-700' : 'bg-blue-100 text-blue-600'}`}>
-                        {m.role}
-                      </span>
-                      {isAdmin && (
-                        <Button variant="ghost" size="icon"
-                          onClick={() => handleRemoveMember(m.user?.id)}
-                          className="w-6 h-6 text-slate-300 hover:text-red-500 hover:bg-red-50">
-                          <X size={12} />
-                        </Button>
-                      )}
+        {/* Sidebar */}
+        <div className="space-y-5">
+          {/* Members */}
+          <div className="bg-white rounded-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <h2 className="font-semibold text-app-dark text-sm">Team Members</h2>
+              {isAdmin && (
+                <Button variant="ghost" size="icon"
+                  onClick={() => { setShowMemberModal(true); fetchUsers() }}
+                  className="w-7 h-7 text-emerald-500 hover:bg-emerald-50 rounded-lg">
+                  <Plus size={15} />
+                </Button>
+              )}
+            </div>
+            <div className="p-3 space-y-1">
+              {members.map((m) => (
+                <div key={m.id} className="flex items-center justify-between gap-2 px-2 py-2 rounded-xl hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center gap-2.5">
+                    <Avatar className="w-8 h-8">
+                      <AvatarFallback className={`${getColor(m.user?.name)} text-white text-xs font-semibold`}>
+                        {getInitials(m.user?.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium text-app-dark">{m.user?.name}</p>
+                      <p className="text-xs text-slate-400 capitalize">{m.role}</p>
                     </div>
                   </div>
-                  {i < members.length - 1 && <Separator />}
+                  {isAdmin && (
+                    <Button variant="ghost" size="icon"
+                      onClick={() => handleRemoveMember(m.user?.id)}
+                      className="w-6 h-6 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg">
+                      <X size={12} />
+                    </Button>
+                  )}
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="bg-white rounded-2xl p-5">
+            <h2 className="font-semibold text-app-dark text-sm mb-4">Task Overview</h2>
+            <div className="space-y-3">
+              {[
+                { label: 'Total Tasks', value: project.tasks?.length ?? 0, color: 'bg-slate-100' },
+                { label: 'Done', value: project.tasks?.filter(t => t.status === 'done').length ?? 0, color: 'bg-emerald-100' },
+                { label: 'In Progress', value: project.tasks?.filter(t => t.status === 'in_progress').length ?? 0, color: 'bg-orange-100' },
+                { label: 'Blocked', value: project.tasks?.filter(t => t.status === 'blocked').length ?? 0, color: 'bg-red-100' },
+              ].map((stat) => (
+                <div key={stat.label} className="flex items-center justify-between">
+                  <span className="text-sm text-slate-500">{stat.label}</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-sm font-semibold ${stat.color}`}>
+                    {stat.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -284,17 +290,20 @@ export default function ProjectDetail() {
         <form onSubmit={handleEdit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-sm text-slate-300">Project Name</label>
-            <input required value={editForm.name || ''} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+            <input required value={editForm.name || ''}
+              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
               className={inputClass} />
           </div>
           <div className="space-y-1.5">
             <label className="text-sm text-slate-300">Description</label>
-            <textarea rows={3} value={editForm.description || ''} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+            <textarea rows={3} value={editForm.description || ''}
+              onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
               className={`${inputClass} resize-none`} />
           </div>
           <div className="space-y-1.5">
             <label className="text-sm text-slate-300">Status</label>
-            <select value={editForm.status || ''} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+            <select value={editForm.status || ''}
+              onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
               className={inputClass}>
               <option value="on_track">On Track</option>
               <option value="delayed">Delayed</option>
@@ -304,20 +313,22 @@ export default function ProjectDetail() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-sm text-slate-300">Start Date</label>
-              <input type="date" value={editForm.start_date || ''} onChange={(e) => setEditForm({ ...editForm, start_date: e.target.value })}
+              <input type="date" value={editForm.start_date || ''}
+                onChange={(e) => setEditForm({ ...editForm, start_date: e.target.value })}
                 className={inputClass} />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm text-slate-300">End Date</label>
-              <input type="date" value={editForm.end_date || ''} onChange={(e) => setEditForm({ ...editForm, end_date: e.target.value })}
+              <input type="date" value={editForm.end_date || ''}
+                onChange={(e) => setEditForm({ ...editForm, end_date: e.target.value })}
                 className={inputClass} />
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}
-              className="text-slate-400 hover:text-white">Cancel</Button>
+              className="text-slate-400">Cancel</Button>
             <Button type="submit" disabled={submitting}
-              className="bg-teal-500 hover:bg-teal-600 text-white">
+              className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl">
               {submitting ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
@@ -340,7 +351,8 @@ export default function ProjectDetail() {
           </div>
           <div className="space-y-1.5">
             <label className="text-sm text-slate-300">Role</label>
-            <select value={newMember.role} onChange={(e) => setNewMember({ ...newMember, role: e.target.value })}
+            <select value={newMember.role}
+              onChange={(e) => setNewMember({ ...newMember, role: e.target.value })}
               className={inputClass}>
               <option value="member">Member</option>
               <option value="manager">Manager</option>
@@ -348,9 +360,9 @@ export default function ProjectDetail() {
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="ghost" onClick={() => setShowMemberModal(false)}
-              className="text-slate-400 hover:text-white">Cancel</Button>
+              className="text-slate-400">Cancel</Button>
             <Button type="submit" disabled={submitting}
-              className="bg-teal-500 hover:bg-teal-600 text-white">
+              className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl">
               {submitting ? 'Adding...' : 'Add Member'}
             </Button>
           </div>
