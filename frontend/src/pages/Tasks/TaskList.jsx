@@ -1,13 +1,24 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchTasks, createTask, updateTask, deleteTask } from '../../features/tasks/taskSlice'
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
+import { fetchTasks, updateTask, createTask, deleteTask } from '../../features/tasks/taskSlice'
 import { fetchProjectDetail } from '../../features/projects/projectSlice'
 import { useAuth } from '../../hooks/useAuth'
 import api from '../../utils/axios'
-import Badge from '../../components/ui/Badge'
-import Spinner from '../../components/ui/Spinner'
+import Badge from '../../components/ui/StatusBadge'
+import Avatar from '../../components/ui/UserAvatar'
 import Modal from '../../components/ui/Modal'
+import Spinner from '../../components/ui/Spinner'
+import { formatDate } from '../../utils/format'
+import { Calendar, Pencil, Trash2 } from 'lucide-react'
+
+const COLUMNS = [
+  { id: 'todo',        label: 'To Do',       color: 'bg-slate-400' },
+  { id: 'in_progress', label: 'In Progress',  color: 'bg-orange-400' },
+  { id: 'done',        label: 'Done',         color: 'bg-teal-500' },
+  { id: 'blocked',     label: 'Blocked',      color: 'bg-red-400' },
+]
 
 const initForm = { title: '', description: '', priority: 'medium', due_date: '', assigned_to: '' }
 
@@ -16,27 +27,21 @@ export default function TaskList() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { isAdmin, user } = useAuth()
-  const { list: tasks, pagination, loading } = useSelector((s) => s.tasks)
+  const { list: tasks, loading } = useSelector((s) => s.tasks)
   const { detail: project } = useSelector((s) => s.projects)
 
-  const [statusFilter, setStatusFilter] = useState('')
-  const [priorityFilter, setPriorityFilter] = useState('')
-  const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
   const [members, setMembers] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [editTask, setEditTask] = useState(null)
   const [form, setForm] = useState(initForm)
   const [submitting, setSubmitting] = useState(false)
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     dispatch(fetchProjectDetail(projectId))
+    dispatch(fetchTasks({ projectId, params: { limit: 100 } }))
     fetchMembers()
   }, [projectId])
-
-  useEffect(() => {
-    dispatch(fetchTasks({ projectId, params: { status: statusFilter, priority: priorityFilter, search, page, limit: 10 } }))
-  }, [statusFilter, priorityFilter, search, page])
 
   const fetchMembers = async () => {
     try {
@@ -45,8 +50,37 @@ export default function TaskList() {
     } catch {}
   }
 
-  const openCreate = () => { setEditTask(null); setForm(initForm); setShowModal(true) }
+  const isManagerOrAdmin = isAdmin || members.some(m => m.user?.id === user?.id && m.role === 'manager')
 
+  // Group tasks by status
+  const grouped = COLUMNS.reduce((acc, col) => {
+    acc[col.id] = tasks.filter(t =>
+      t.status === col.id &&
+      (search === '' || t.title.toLowerCase().includes(search.toLowerCase()))
+    )
+    return acc
+  }, {})
+
+  const onDragEnd = async (result) => {
+  const { destination, source, draggableId } = result
+  if (!destination) return
+  if (destination.droppableId === source.droppableId && destination.index === source.index) return
+
+  const task = tasks.find(t => String(t.id) === draggableId)
+  if (!task) return
+
+  const canEdit = isManagerOrAdmin || task.assigned_to === user?.id
+  if (!canEdit) return
+
+  // Optimistic update dulu di Redux
+  dispatch(updateTask({
+    projectId,
+    taskId: task.id,
+    data: { status: destination.droppableId },
+  }))
+}
+
+  const openCreate = () => { setEditTask(null); setForm(initForm); setShowModal(true) }
   const openEdit = (task) => {
     setEditTask(task)
     setForm({
@@ -54,7 +88,7 @@ export default function TaskList() {
       description: task.description || '',
       priority: task.priority,
       status: task.status,
-      due_date: task.due_date || '',
+      due_date: formatDate(task.due_date) || '',
       assigned_to: task.assigned_to || '',
     })
     setShowModal(true)
@@ -64,7 +98,6 @@ export default function TaskList() {
     e.preventDefault()
     setSubmitting(true)
     const payload = { ...form, assigned_to: form.assigned_to || null }
-
     if (editTask) {
       await dispatch(updateTask({ projectId, taskId: editTask.id, data: payload }))
     } else {
@@ -72,148 +105,171 @@ export default function TaskList() {
     }
     setSubmitting(false)
     setShowModal(false)
-    dispatch(fetchTasks({ projectId, params: { status: statusFilter, priority: priorityFilter, search, page, limit: 10 } }))
+    dispatch(fetchTasks({ projectId, params: { limit: 100 } }))
   }
 
-  const handleDelete = async (taskId) => {
-    if (!confirm('Delete this task?')) return
-    await dispatch(deleteTask({ projectId, taskId }))
-  }
+  const handleDelete = async (e, taskId) => {
+  e.stopPropagation()
+  if (!confirm('Delete this task?')) return
+  await dispatch(deleteTask({ projectId, taskId }))
+  dispatch(fetchTasks({ projectId, params: { limit: 100 } }))
+}
 
-  const handleStatusChange = async (task, newStatus) => {
-    await dispatch(updateTask({ projectId, taskId: task.id, data: { status: newStatus } }))
-  }
-
-  const isManagerOrAdmin = isAdmin || members.some(m => m.user?.id === user?.id && m.role === 'manager')
-
-  const inputClass = "w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 text-sm"
+  const inputClass = "w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500 text-sm"
 
   return (
-    <div>
-      {/* Back */}
-      <button onClick={() => navigate(`/projects/${projectId}`)}
-        className="flex items-center gap-1 text-sm text-slate-400 hover:text-slate-600 mb-5 transition-colors">
-        ← Back to Project
-      </button>
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Tasks</h1>
-          <p className="text-slate-500 text-sm mt-0.5">{project?.name}</p>
-        </div>
-        {isManagerOrAdmin && (
-          <button onClick={openCreate}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-            + New Task
+    <div className="flex flex-col h-screen">
+      {/* Top bar */}
+      <div className="px-8 py-5 bg-white border-b border-slate-200 flex items-center justify-between gap-4 shrink-0">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(`/projects/${projectId}`)}
+            className="text-slate-400 hover:text-slate-600 transition-colors text-sm">
+            ←
           </button>
-        )}
-      </div>
+          <div>
+            <h1 className="text-lg font-bold text-slate-800">{project?.name}</h1>
+            <p className="text-xs text-slate-400">Kanban Board · {tasks.length} tasks</p>
+          </div>
+        </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-5">
-        <input type="text" placeholder="Search tasks..."
-          value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-          className="flex-1 min-w-48 px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm focus:outline-none focus:border-blue-400"
-        />
-        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
-          className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm focus:outline-none">
-          <option value="">All Status</option>
-          <option value="todo">Todo</option>
-          <option value="in_progress">In Progress</option>
-          <option value="done">Done</option>
-          <option value="blocked">Blocked</option>
-        </select>
-        <select value={priorityFilter} onChange={(e) => { setPriorityFilter(e.target.value); setPage(1) }}
-          className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm focus:outline-none">
-          <option value="">All Priority</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
-      </div>
-
-      {/* Tasks */}
-      {loading ? <Spinner /> : (
-        <>
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm divide-y divide-slate-100">
-            {tasks.length === 0 && (
-              <p className="px-6 py-10 text-center text-slate-400 text-sm">No tasks found.</p>
-            )}
-            {tasks.map((task) => {
-              const isAssignee = task.assigned_to === user?.id
-              const canEdit = isManagerOrAdmin || isAssignee
-
-              return (
-                <div key={task.id} className="px-5 py-4 flex items-start justify-between gap-4 hover:bg-slate-50 transition-colors">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-medium text-slate-800 text-sm">{task.title}</p>
-                      <Badge value={task.priority} />
-                    </div>
-                    {task.description && (
-                      <p className="text-xs text-slate-400 mt-1 line-clamp-1">{task.description}</p>
-                    )}
-                    <div className="flex gap-3 mt-2 text-xs text-slate-400 flex-wrap">
-                      {task.assignee && <span>👤 {task.assignee.name}</span>}
-                      {task.due_date && <span>📅 Due {task.due_date}</span>}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    {/* Quick status update */}
-                    {canEdit && (
-                      <select
-                        value={task.status}
-                        onChange={(e) => handleStatusChange(task, e.target.value)}
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-xs px-2 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 focus:outline-none"
-                      >
-                        <option value="todo">Todo</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="done">Done</option>
-                        <option value="blocked">Blocked</option>
-                      </select>
-                    )}
-                    {!canEdit && <Badge value={task.status} />}
-
-                    {isManagerOrAdmin && (
-                      <>
-                        <button onClick={() => openEdit(task)}
-                          className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors text-sm">
-                          ✏️
-                        </button>
-                        <button onClick={() => handleDelete(task.id)}
-                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors text-sm">
-                          🗑️
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
+        <div className="flex items-center gap-3">
+          {/* Search */}
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+            <input
+              type="text"
+              placeholder="Search tasks..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 pr-4 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:border-teal-400 w-48"
+            />
           </div>
 
-          {/* Pagination */}
-          {pagination && pagination.lastPage > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-5">
-              <button disabled={page === 1} onClick={() => setPage(p => p - 1)}
-                className="px-3 py-1.5 rounded-lg text-sm border border-slate-200 disabled:opacity-40 hover:bg-slate-100 transition-colors">
-                ← Prev
-              </button>
-              <span className="text-sm text-slate-500">Page {pagination.currentPage} of {pagination.lastPage}</span>
-              <button disabled={page === pagination.lastPage} onClick={() => setPage(p => p + 1)}
-                className="px-3 py-1.5 rounded-lg text-sm border border-slate-200 disabled:opacity-40 hover:bg-slate-100 transition-colors">
-                Next →
-              </button>
-            </div>
+          {/* Member avatars */}
+          <div className="flex -space-x-2">
+            {members.slice(0, 4).map((m) => (
+              <div key={m.id} className="ring-2 ring-white rounded-full">
+                <Avatar name={m.user?.name} size="sm" />
+              </div>
+            ))}
+          </div>
+
+          {isManagerOrAdmin && (
+            <button onClick={openCreate}
+              className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
+              + Add Task
+            </button>
           )}
-        </>
+        </div>
+      </div>
+
+      {/* Kanban Board */}
+      {loading ? <div className="flex-1 flex items-center justify-center"><Spinner /></div> : (
+        <div className="flex-1 overflow-x-auto px-8 py-6">
+          <DragDropContext onDragEnd={onDragEnd}>
+            <div className="flex gap-5 h-full min-w-max">
+              {COLUMNS.map((col) => (
+                <div key={col.id} className="w-72 flex flex-col">
+                  {/* Column header */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className={`w-2.5 h-2.5 rounded-full ${col.color}`} />
+                    <h3 className="font-semibold text-slate-700 text-sm">{col.label}</h3>
+                    <span className="ml-auto bg-slate-200 text-slate-500 text-xs font-bold px-2 py-0.5 rounded-full">
+                      {grouped[col.id]?.length ?? 0}
+                    </span>
+                  </div>
+
+                  {/* Droppable column */}
+                  <Droppable droppableId={col.id}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className={`flex-1 rounded-2xl p-2 space-y-3 min-h-32 transition-colors ${
+                          snapshot.isDraggingOver ? 'bg-teal-50 border-2 border-teal-200 border-dashed' : 'bg-slate-100/60'
+                        }`}
+                      >
+                        {grouped[col.id]?.map((task, index) => (
+                          <Draggable key={String(task.id)} draggableId={String(task.id)} index={index}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`bg-white rounded-xl p-4 shadow-sm border transition-all ${
+                                  snapshot.isDragging
+                                    ? 'shadow-lg border-teal-300 rotate-1'
+                                    : 'border-slate-200 hover:shadow-md hover:border-slate-300'
+                                }`}
+                              >
+                                {/* Tags row */}
+                                <div className="flex items-center gap-1.5 mb-2.5 flex-wrap">
+                                  <Badge value={task.priority} />
+                                </div>
+
+                                {/* Title */}
+                                <p className="font-semibold text-slate-800 text-sm leading-snug mb-1">
+                                  {task.title}
+                                </p>
+
+                                {/* Description */}
+                                {task.description && (
+                                  <p className="text-xs text-slate-400 line-clamp-2 mb-3">
+                                    {task.description}
+                                  </p>
+                                )}
+
+                                {/* Due date */}
+                                {formatDate(task.due_date) && (
+                                  <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-3">
+                                    <Calendar size={11} />
+                                    <span>{formatDate(task.due_date)}</span>
+                                  </div>
+                                )}
+
+                                {/* Footer */}
+                                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                                  {task.assignee
+                                    ? <Avatar name={task.assignee.name} size="sm" showName={false} />
+                                    : <span className="text-xs text-slate-300">Unassigned</span>
+                                  }
+                                  {isManagerOrAdmin && (
+                                    <div className="flex gap-1">
+                                      <button onClick={() => openEdit(task)}
+                                        className="p-1.5 text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors text-xs">
+                                        <Pencil size={15} />
+                                      </button>
+                                      <button onClick={(e) => handleDelete(e, task.id)}
+                                        className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors text-xs">
+                                        <Trash2 size={15} />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+
+                        {/* Empty state */}
+                        {grouped[col.id]?.length === 0 && !snapshot.isDraggingOver && (
+                          <div className="text-center py-8 text-slate-300 text-xs">
+                            No tasks here
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Droppable>
+                </div>
+              ))}
+            </div>
+          </DragDropContext>
+        </div>
       )}
 
       {/* Create / Edit Modal */}
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editTask ? 'Edit Task' : 'Create Task'}>
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editTask ? 'Edit Task' : 'New Task'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm text-slate-300 mb-1">Title</label>
@@ -237,7 +293,7 @@ export default function TaskList() {
             <div>
               <label className="block text-sm text-slate-300 mb-1">Status</label>
               <select value={form.status || 'todo'} onChange={(e) => setForm({ ...form, status: e.target.value })} className={inputClass}>
-                <option value="todo">Todo</option>
+                <option value="todo">To Do</option>
                 <option value="in_progress">In Progress</option>
                 <option value="done">Done</option>
                 <option value="blocked">Blocked</option>
@@ -264,7 +320,7 @@ export default function TaskList() {
             <button type="button" onClick={() => setShowModal(false)}
               className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">Cancel</button>
             <button type="submit" disabled={submitting}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg disabled:opacity-50 transition-colors">
+              className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl disabled:opacity-50 transition-colors">
               {submitting ? 'Saving...' : editTask ? 'Save Changes' : 'Create Task'}
             </button>
           </div>

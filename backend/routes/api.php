@@ -42,9 +42,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('projects', ProjectController::class);
 
     // Tasks per project
-   Route::apiResource('projects.tasks', TaskController::class)->scoped([
-    'task' => 'project',
-]);
+   Route::get('projects/{project}/tasks', [TaskController::class, 'index']);
+   Route::post('projects/{project}/tasks', [TaskController::class, 'store']);
+   Route::get('projects/{project}/tasks/{task}', [TaskController::class, 'show']);
+   Route::put('projects/{project}/tasks/{task}', [TaskController::class, 'update']);
+   Route::patch('projects/{project}/tasks/{task}', [TaskController::class, 'update']);
+   Route::delete('projects/{project}/tasks/{task}', [TaskController::class, 'destroy']);
 
     // Comments per task
     Route::post('tasks/{task}/comments',              [TaskController::class, 'addComment']);
