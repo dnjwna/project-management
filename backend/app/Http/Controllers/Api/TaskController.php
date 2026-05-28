@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskComment;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
@@ -73,6 +74,17 @@ class TaskController extends Controller
 
         $task = $project->tasks()->create($validated);
 
+        // Trigger notifikasi saat task baru dibuat dan di-assign ke seseorang
+        if (!empty($validated['assigned_to'])) {
+            NotificationService::taskAssigned(
+                $validated['assigned_to'],
+                $task->title,
+                $project->name,
+                $task->id,
+                $project->id
+            );
+        }
+
         return response()->json([
             'message' => 'Task created successfully',
             'task'    => $task->load('assignee:id,name,email'),
@@ -115,6 +127,17 @@ class TaskController extends Controller
 
         $task->update($validated);
 
+        // Trigger notifikasi saat status task diubah menjadi blocked
+        if (isset($validated['status']) && $validated['status'] === 'blocked' && $task->assigned_to) {
+            NotificationService::taskBlocked(
+                $task->assigned_to,
+                $task->title,
+                $project->name,
+                $task->id,
+                $project->id
+            );
+        }
+
         return response()->json([
             'message' => 'Task updated successfully',
             'task'    => $task->fresh()->load('assignee:id,name,email'),
@@ -123,13 +146,17 @@ class TaskController extends Controller
 
     public function destroy(Request $request, Project $project, Task $task)
     {
+        // Pengecekan akses: Hanya Admin atau Manager proyek yang boleh menghapus task
         if (!$request->user()->isAdmin() && !$this->isManager($project, $request->user()->id)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        // Eksekusi hapus task
         $task->delete();
 
-        return response()->json(['message' => 'Task deleted successfully']);
+        return response()->json([
+            'message' => 'Task deleted successfully'
+        ]);
     }
 
     public function addComment(Request $request, Task $task)
@@ -142,6 +169,18 @@ class TaskController extends Controller
             'user_id' => $request->user()->id,
             'comment' => $validated['comment'],
         ]);
+
+        // Trigger notifikasi saat ada komentar baru
+        $task->load('project');
+        if ($task->assigned_to && $task->assigned_to !== $request->user()->id) {
+            NotificationService::commentAdded(
+                $task->assigned_to,
+                $request->user()->name,
+                $task->title,
+                $task->id,
+                $task->project_id
+            );
+        }
 
         return response()->json([
             'message' => 'Comment added',

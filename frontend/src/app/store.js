@@ -3,6 +3,7 @@ import authReducer from '../features/auth/authSlice'
 import projectReducer from '../features/projects/projectSlice'
 import taskReducer from '../features/tasks/taskSlice'
 import reportReducer from '../features/reports/reportSlice'
+import notificationReducer from '../features/notifications/notificationSlice'
 
 export const store = configureStore({
   reducer: {
@@ -10,5 +11,6 @@ export const store = configureStore({
     projects: projectReducer,
     tasks: taskReducer,
     reports: reportReducer,
+    notifications: notificationReducer,
   },
 })

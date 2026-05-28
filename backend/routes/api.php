@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\MemberController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TaskDetailController;
+use App\Http\Controllers\Api\NotificationController;
 use Illuminate\Http\Request;
 
 // Public routes
@@ -43,12 +44,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('projects', ProjectController::class);
 
     // Tasks per project
-   Route::get('projects/{project}/tasks', [TaskController::class, 'index']);
-   Route::post('projects/{project}/tasks', [TaskController::class, 'store']);
-   Route::get('projects/{project}/tasks/{task}', [TaskController::class, 'show']);
-   Route::put('projects/{project}/tasks/{task}', [TaskController::class, 'update']);
-   Route::patch('projects/{project}/tasks/{task}', [TaskController::class, 'update']);
-   Route::delete('projects/{project}/tasks/{task}', [TaskController::class, 'destroy']);
+    Route::get('projects/{project}/tasks', [TaskController::class, 'index']);
+    Route::post('projects/{project}/tasks', [TaskController::class, 'store']);
+    Route::get('projects/{project}/tasks/{task}', [TaskController::class, 'show']);
+    Route::put('projects/{project}/tasks/{task}', [TaskController::class, 'update']);
+    Route::patch('projects/{project}/tasks/{task}', [TaskController::class, 'update']);
+    Route::delete('projects/{project}/tasks/{task}', [TaskController::class, 'destroy']);
 
     // Comments per task
     Route::post('tasks/{task}/comments', [TaskController::class, 'addComment']);
@@ -57,7 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Members
     Route::get('projects/{project}/members', [MemberController::class, 'index']);
     Route::post('projects/{project}/members', [MemberController::class, 'store']);
-    Route::delete('projects/{project}/members/{user}',[MemberController::class, 'destroy']);
+    Route::delete('projects/{project}/members/{user}', [MemberController::class, 'destroy']);
 
     // Reports
     Route::get('reports/projects', [ReportController::class, 'projectSummary']);
@@ -74,4 +75,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Attachments
     Route::post('tasks/{task}/attachments', [TaskDetailController::class, 'addAttachment']);
     Route::delete('tasks/{task}/attachments/{attachment}', [TaskDetailController::class, 'deleteAttachment']);
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+    Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy']);
+    Route::delete('/notifications', [NotificationController::class, 'clearAll']);
 });

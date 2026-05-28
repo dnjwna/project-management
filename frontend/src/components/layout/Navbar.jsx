@@ -11,7 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Bell, Search, LogOut, Settings, User } from 'lucide-react'
+import { Search, LogOut, Settings, User } from 'lucide-react'
+import NotificationPanel from '../ui/NotificationPanel'
 
 const avatarColors = ['bg-emerald-500', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500']
 const getColor = (name) => avatarColors[(name?.charCodeAt(0) || 0) % avatarColors.length]
@@ -78,11 +79,7 @@ export default function Navbar() {
         {/* KANAN: Actions & User Pill */}
         <div className="flex items-center gap-1 bg-white rounded-full p-1.5 shadow-sm border border-slate-100 shrink-0">
           {/* Notification */}
-          <Button variant="ghost" size="icon"
-            className="w-9 h-9 text-slate-500 hover:text-black hover:bg-slate-50 rounded-full relative mr-1">
-            <Bell size={18} />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-black rounded-full border border-white" />
-          </Button>
+          <NotificationPanel />
 
           {/* User Menu */}
           <DropdownMenu>
