@@ -7,6 +7,8 @@ use App\Models\Task;
 use App\Models\TaskChecklist;
 use App\Models\TaskAttachment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class TaskDetailController extends Controller
 {
@@ -37,7 +39,7 @@ class TaskDetailController extends Controller
         return response()->json(['message' => 'Checklist item deleted']);
     }
 
-    // ── Attachments ────────────────────────────────────────
+    // ── Link Attachment ────────────────────────────────────
     public function addAttachment(Request $request, Task $task)
     {
         $validated = $request->validate([
@@ -46,9 +48,10 @@ class TaskDetailController extends Controller
         ]);
 
         $attachment = $task->attachments()->create([
-            'user_id' => $request->user()->id,
-            'name'    => $validated['name'],
-            'url'     => $validated['url'],
+            'user_id'         => $request->user()->id,
+            'name'            => $validated['name'],
+            'url'             => $validated['url'],
+            'attachment_type' => 'link',
         ]);
 
         return response()->json([
@@ -57,16 +60,56 @@ class TaskDetailController extends Controller
         ], 201);
     }
 
+    // ── File Upload ────────────────────────────────────────
+    public function uploadFile(Request $request, Task $task)
+    {
+        $request->validate([
+            'file' => 'required|file|max:10240', // max 10MB
+        ]);
+
+        $file = $request->file('file');
+        $originalName = $file->getClientOriginalName();
+        $mimeType = $file->getMimeType();
+        $size = $file->getSize();;
+
+        // Simpan ke storage/app/public/task-attachments/{task_id}/
+        $path = $file->store("task-attachments/{$task->id}", 'public');
+
+        $attachment = $task->attachments()->create([
+            'user_id'         => $request->user()->id,
+            'name'            => $originalName,
+            'url'             => asset('storage/' . $path),
+            'disk'            => 'public',
+            'path'            => $path,
+            'mime_type'       => $mimeType,
+            'size'            => $size,
+            'attachment_type' => 'file',
+        ]);
+
+        return response()->json([
+            'message'    => 'File uploaded successfully',
+            'attachment' => $attachment->load('user:id,name'),
+        ], 201);
+    }
+
+    // ── Delete Attachment ──────────────────────────────────
     public function deleteAttachment(Request $request, Task $task, TaskAttachment $attachment)
     {
         if ($attachment->user_id !== $request->user()->id && !$request->user()->isAdmin()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
+
+        // Hapus file fisik kalau tipe file
+        if ($attachment->attachment_type === 'file' && $attachment->path) {
+            Storage::disk('public')->delete($attachment->path);
+        }
+
         $attachment->delete();
+
         return response()->json(['message' => 'Attachment deleted']);
     }
 
-    // ── Task Detail (full) ─────────────────────────────────
+    // ── Task Detail ────────────────────────────────────────
     public function show(Request $request, Task $task)
     {
         $task->load([

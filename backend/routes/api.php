@@ -90,4 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/invitations',                        [InvitationController::class, 'index']);
     Route::post('/invitations/send',                  [InvitationController::class, 'send']);
     Route::patch('/invitations/{invitation}/revoke',  [InvitationController::class, 'revoke']);
+
+    // Tambah di dalam group auth:sanctum
+    Route::post('tasks/{task}/attachments/upload', [TaskDetailController::class, 'uploadFile']);
 });

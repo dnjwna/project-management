@@ -8,7 +8,8 @@ import { Separator } from '@/components/ui/separator'
 import { formatDate } from '../../utils/format'
 import {
   Calendar, CheckSquare, Paperclip, MessageSquare,
-  Plus, Trash2, ExternalLink, Send, X, Check, Link
+  Plus, Trash2, ExternalLink, Send, X, Check, Link,
+  Upload, Loader2
 } from 'lucide-react'
 
 const avatarColors = ['bg-indigo-500', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500']
@@ -28,6 +29,28 @@ const statusStyle = {
   blocked:     { bg: 'bg-red-100',     text: 'text-red-600' },
 }
 
+const fileIconMap = {
+  image:   '🖼️',
+  pdf:     '📄',
+  word:    '📝',
+  excel:   '📊',
+  archive: '🗜️',
+  video:   '🎬',
+  file:    '📎',
+  link:    '🔗',
+}
+
+const fileIconBg = {
+  image:   'bg-blue-50',
+  pdf:     'bg-red-50',
+  word:    'bg-blue-50',
+  excel:   'bg-emerald-50',
+  archive: 'bg-yellow-50',
+  video:   'bg-purple-50',
+  file:    'bg-slate-50',
+  link:    'bg-indigo-50',
+}
+
 export default function TaskDetailModal({ taskId, projectId, isOpen, onClose, onUpdated }) {
   const { user, isAdmin } = useAuth()
   const [task, setTask] = useState(null)
@@ -43,6 +66,7 @@ export default function TaskDetailModal({ taskId, projectId, isOpen, onClose, on
   const [showAttachForm, setShowAttachForm] = useState(false)
   const [attachForm, setAttachForm] = useState({ name: '', url: '' })
   const [addingAttach, setAddingAttach] = useState(false)
+  const [uploadingFile, setUploadingFile] = useState(false)
 
   useEffect(() => {
     if (isOpen && taskId) fetchTask()
@@ -118,6 +142,28 @@ export default function TaskDetailModal({ taskId, projectId, isOpen, onClose, on
     setAddingAttach(false)
   }
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size must be less than 10MB')
+      return
+    }
+    setUploadingFile(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      await api.post(`/tasks/${taskId}/attachments/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      await fetchTask()
+    } catch (err) {
+      alert(err.response?.data?.message || 'Upload failed')
+    }
+    setUploadingFile(false)
+    e.target.value = ''
+  }
+
   const handleDeleteAttachment = async (attachId) => {
     try {
       await api.delete(`/tasks/${taskId}/attachments/${attachId}`)
@@ -131,7 +177,7 @@ export default function TaskDetailModal({ taskId, projectId, isOpen, onClose, on
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white border-0 shadow-2xl w-[95vw] max-w-2xl p-0 gap-0 rounded-2xl overflow-hidden max-h-[90vh] [&>button]:hidden">
+      <DialogContent className="bg-white border-0 shadow-2xl w-full max-w-xl p-0 gap-0 rounded-2xl overflow-hidden max-h-[90vh] [&>button]:hidden mx-4">
         {loading || !task ? (
           <div className="flex items-center justify-center py-20">
             <div className="w-8 h-8 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin" />
@@ -140,10 +186,9 @@ export default function TaskDetailModal({ taskId, projectId, isOpen, onClose, on
           <div className="flex flex-col max-h-[90vh]">
 
             {/* Header */}
-            <div className="px-6 pt-6 pb-4 border-b border-slate-100">
+            <div className="px-6 pt-6 pb-4 border-b border-slate-100 shrink-0">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  {/* Badges */}
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     {task.priority && (
                       <span className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${priorityStyle[task.priority]?.bg} ${priorityStyle[task.priority]?.text}`}>
@@ -157,16 +202,12 @@ export default function TaskDetailModal({ taskId, projectId, isOpen, onClose, on
                       </span>
                     )}
                     {task.project?.name && (
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500 truncate max-w-[160px]">
                         {task.project.name}
                       </span>
                     )}
                   </div>
-
-                  {/* Title */}
                   <h2 className="text-xl font-bold text-app-dark">{task.title}</h2>
-
-                  {/* Meta */}
                   <div className="flex items-center gap-3 mt-2 flex-wrap">
                     {task.due_date && (
                       <div className="flex items-center gap-1.5 text-xs text-slate-500">
@@ -186,8 +227,6 @@ export default function TaskDetailModal({ taskId, projectId, isOpen, onClose, on
                     )}
                   </div>
                 </div>
-
-                {/* Close button */}
                 <button onClick={onClose}
                   className="w-8 h-8 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors shrink-0">
                   <X size={16} />
@@ -258,7 +297,6 @@ export default function TaskDetailModal({ taskId, projectId, isOpen, onClose, on
                   </button>
                 </div>
 
-                {/* Progress bar */}
                 {task.checklists?.length > 0 && (
                   <div className="mb-3">
                     <div className="flex justify-between text-xs text-slate-400 mb-1">
@@ -272,13 +310,11 @@ export default function TaskDetailModal({ taskId, projectId, isOpen, onClose, on
                   </div>
                 )}
 
-                {/* Items */}
                 <div className="space-y-1">
                   {task.checklists?.map((item) => (
                     <div key={item.id}
                       className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 group transition-colors">
-                      <button
-                        onClick={() => handleToggleChecklist(item.id)}
+                      <button onClick={() => handleToggleChecklist(item.id)}
                         style={{ width: 18, height: 18 }}
                         className={`rounded flex items-center justify-center border transition-all shrink-0 ${
                           item.is_done
@@ -298,7 +334,6 @@ export default function TaskDetailModal({ taskId, projectId, isOpen, onClose, on
                   ))}
                 </div>
 
-                {/* Add input */}
                 {showCheckInput && (
                   <form onSubmit={handleAddChecklist} className="flex gap-2 mt-2">
                     <input autoFocus value={newCheckItem}
@@ -325,14 +360,33 @@ export default function TaskDetailModal({ taskId, projectId, isOpen, onClose, on
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Paperclip size={13} className="text-slate-400" />
-                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Attachments</h3>
+                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                      Attachments ({task.attachments?.length ?? 0})
+                    </h3>
                   </div>
-                  <button onClick={() => setShowAttachForm(!showAttachForm)}
-                    className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-600 font-medium">
-                    <Plus size={13} /> Add
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {/* Upload file */}
+                    <label className={`flex items-center gap-1 text-xs font-medium cursor-pointer transition-colors ${
+                      uploadingFile ? 'text-slate-400 cursor-not-allowed' : 'text-emerald-500 hover:text-emerald-600'
+                    }`}>
+                      {uploadingFile
+                        ? <><Loader2 size={12} className="animate-spin" /> Uploading...</>
+                        : <><Upload size={12} /> Upload</>
+                      }
+                      <input type="file" className="hidden" disabled={uploadingFile}
+                        onChange={handleFileUpload}
+                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.mp4,.mov" />
+                    </label>
+                    <span className="text-slate-200 text-xs">|</span>
+                    {/* Add link */}
+                    <button onClick={() => setShowAttachForm(!showAttachForm)}
+                      className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-600 font-medium">
+                      <Plus size={12} /> Link
+                    </button>
+                  </div>
                 </div>
 
+                {/* Link form */}
                 {showAttachForm && (
                   <form onSubmit={handleAddAttachment} className="space-y-2 mb-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
                     <input required value={attachForm.name}
@@ -357,34 +411,51 @@ export default function TaskDetailModal({ taskId, projectId, isOpen, onClose, on
                   </form>
                 )}
 
+                {/* Attachment list */}
                 <div className="space-y-2">
                   {task.attachments?.length === 0 && !showAttachForm && (
-                    <p className="text-xs text-slate-400 py-1">No attachments yet.</p>
-                  )}
-                  {task.attachments?.map((att) => (
-                    <div key={att.id}
-                      className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 group hover:border-indigo-100 transition-colors">
-                      <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center shrink-0">
-                        <Link size={13} className="text-indigo-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-700 truncate">{att.name}</p>
-                        <p className="text-xs text-slate-400 truncate">{att.url}</p>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <a href={att.url} target="_blank" rel="noreferrer"
-                          className="w-7 h-7 rounded-lg hover:bg-indigo-50 flex items-center justify-center text-slate-300 hover:text-indigo-500 transition-colors">
-                          <ExternalLink size={12} />
-                        </a>
-                        {(att.user_id === user?.id || isAdmin) && (
-                          <button onClick={() => handleDeleteAttachment(att.id)}
-                            className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
-                            <Trash2 size={12} />
-                          </button>
-                        )}
-                      </div>
+                    <div className="text-center py-6 border-2 border-dashed border-slate-200 rounded-xl">
+                      <Paperclip size={20} className="text-slate-300 mx-auto mb-2" />
+                      <p className="text-xs text-slate-400">No attachments yet</p>
+                      <p className="text-xs text-slate-300 mt-0.5">Upload a file or add a link</p>
                     </div>
-                  ))}
+                  )}
+                  {task.attachments?.map((att) => {
+                    const iconKey = att.attachment_type === 'link' ? 'link' : (att.file_icon || 'file')
+                    return (
+                      <div key={att.id}
+                        className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 group hover:border-indigo-100 transition-colors">
+                        <div className={`w-8 h-8 ${fileIconBg[iconKey] || 'bg-slate-50'} rounded-lg flex items-center justify-center shrink-0 text-sm`}>
+                          {fileIconMap[iconKey] || '📎'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-700 truncate">{att.name}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            {att.attachment_type === 'file' ? (
+                              <span className="text-xs text-slate-400">
+                                {att.formatted_size} · <span className="capitalize">{att.file_icon}</span>
+                              </span>
+                            ) : (
+                              <span className="text-xs text-slate-400 break-all line-clamp-1">{att.url}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <a href={att.download_url || att.url} target="_blank" rel="noreferrer"
+                            download={att.attachment_type === 'file' ? att.name : undefined}
+                            className="w-7 h-7 rounded-lg hover:bg-indigo-50 flex items-center justify-center text-slate-300 hover:text-indigo-500 transition-colors">
+                            <ExternalLink size={12} />
+                          </a>
+                          {(att.user_id === user?.id || isAdmin) && (
+                            <button onClick={() => handleDeleteAttachment(att.id)}
+                              className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                              <Trash2 size={12} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
 
@@ -433,7 +504,6 @@ export default function TaskDetailModal({ taskId, projectId, isOpen, onClose, on
                   ))}
                 </div>
 
-                {/* Comment input */}
                 <form onSubmit={handleSendComment} className="flex gap-2 items-center">
                   <Avatar className="w-7 h-7 shrink-0">
                     <AvatarFallback className={`${getColor(user?.name)} text-white text-xs font-semibold`}>
