@@ -8,11 +8,12 @@ import {
 import { Bell } from 'lucide-react'
 
 const typeStyle = {
-  task_assigned: { bg: 'bg-indigo-50', dot: 'bg-indigo-500', icon: '📋' },
-  comment_added: { bg: 'bg-purple-50', dot: 'bg-purple-500', icon: '💬' },
-  due_soon:      { bg: 'bg-orange-50', dot: 'bg-orange-500', icon: '🕐' },
-  overdue:       { bg: 'bg-red-50',    dot: 'bg-red-500',    icon: '⚠️' },
-  task_blocked:  { bg: 'bg-red-50',    dot: 'bg-red-500',    icon: '🚫' },
+  task_assigned:   { bg: 'bg-indigo-50', dot: 'bg-indigo-500', icon: '📋' },
+  comment_added:   { bg: 'bg-purple-50', dot: 'bg-purple-500', icon: '💬' },
+  attachment_added:{ bg: 'bg-blue-50',   dot: 'bg-blue-500',   icon: '📎' },
+  due_soon:        { bg: 'bg-orange-50', dot: 'bg-orange-500', icon: '🕐' },
+  overdue:         { bg: 'bg-red-50',    dot: 'bg-red-500',    icon: '⚠️' },
+  task_blocked:    { bg: 'bg-red-50',    dot: 'bg-red-500',    icon: '🚫' },
 }
 
 const formatRelativeTime = (dateStr) => {

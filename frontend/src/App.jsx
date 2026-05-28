@@ -8,7 +8,6 @@ import Dashboard from './pages/Dashboard'
 import ProjectList from './pages/Projects/ProjectList'
 import ProjectDetail from './pages/Projects/ProjectDetail'
 import TaskList from './pages/Tasks/TaskList'
-import AdminProjects from './pages/Admin/AdminProjects'
 import UserManagement from './pages/Admin/UserManagement'
 import AdminReports from './pages/Admin/AdminReports'
 import InvitationManagement from './pages/Admin/InvitationManagement'
@@ -36,7 +35,6 @@ export default function App() {
         <Route path="/projects/:id/tasks" element={<AppLayout><TaskList /></AppLayout>} />
 
         {/* Admin Only */}
-        <Route path="/admin/projects" element={<AppLayout adminOnly><AdminProjects /></AppLayout>} />
         <Route path="/admin/users" element={<AppLayout adminOnly><UserManagement /></AppLayout>} />
         <Route path="/admin/reports" element={<AppLayout adminOnly><AdminReports /></AppLayout>} />
 

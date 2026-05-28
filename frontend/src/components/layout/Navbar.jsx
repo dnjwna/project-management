@@ -104,12 +104,6 @@ export default function Navbar() {
               <DropdownMenuItem className="gap-2 cursor-pointer rounded-xl">
                 <User size={14} /> Profile
               </DropdownMenuItem>
-              {isAdmin && (
-                <DropdownMenuItem className="gap-2 cursor-pointer rounded-xl"
-                  onClick={() => navigate('/admin/projects')}>
-                  <Settings size={14} /> Manage Projects
-                </DropdownMenuItem>
-              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={handleLogout}
