@@ -66,9 +66,9 @@ export default function Navbar() {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `px-5 py-2 rounded-full text-sm font-medium transition-all
+                `px-5 py-2 rounded-full text-sm font-medium hover:-translate-y-[1px] hover:duration-200
                 ${isActive
-                  ? 'bg-black text-white' 
+                  ? 'bg-slate-900 text-white shadow-sm' 
                   : 'text-slate-500 hover:text-black hover:bg-slate-50'}`
               }
             >
