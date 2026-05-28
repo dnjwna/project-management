@@ -12,6 +12,7 @@ import Modal from '../../components/ui/Modal'
 import Spinner from '../../components/ui/Spinner'
 import { formatDate } from '../../utils/format'
 import { ArrowLeft, Plus, Search, Calendar, Pencil, Trash2 } from 'lucide-react'
+import TaskDetailModal from '../../components/ui/TaskDetailModal'
 
 const avatarColors = ['bg-emerald-500', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500']
 const getColor = (name) => avatarColors[(name?.charCodeAt(0) || 0) % avatarColors.length]
@@ -46,6 +47,7 @@ export default function TaskList() {
   const [form, setForm] = useState(initForm)
   const [submitting, setSubmitting] = useState(false)
   const [search, setSearch] = useState('')
+  const [selectedTaskId, setSelectedTaskId] = useState(null)
 
   useEffect(() => {
     dispatch(fetchProjectDetail(projectId))
@@ -231,7 +233,10 @@ export default function TaskList() {
                                 </div>
 
                                 {/* Title */}
-                                <p className="font-semibold text-app-dark text-sm leading-snug mb-1">
+                                <p 
+                                className="font-semibold text-app-dark text-sm leading-snug mb-1 cursor-pointer hover:text-indigo-600 transition-colors"
+                                onClick={() => {setSelectedTaskId(task.id)}}
+                                >
                                   {task.title}
                                 </p>
 
@@ -353,6 +358,13 @@ export default function TaskList() {
           </div>
         </form>
       </Modal>
+      <TaskDetailModal
+        taskId={selectedTaskId}
+        projectId={projectId}
+        isOpen={!!selectedTaskId}
+        onClose={() => setSelectedTaskId(null)}
+        onUpdated={() => dispatch(fetchTasks({ projectId, params: { limit: 100 } }))}
+      />
     </div>
   )
 }

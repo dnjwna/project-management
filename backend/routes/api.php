@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\MemberController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\TaskDetailController;
 use Illuminate\Http\Request;
 
 // Public routes
@@ -50,15 +51,27 @@ Route::middleware('auth:sanctum')->group(function () {
    Route::delete('projects/{project}/tasks/{task}', [TaskController::class, 'destroy']);
 
     // Comments per task
-    Route::post('tasks/{task}/comments',              [TaskController::class, 'addComment']);
+    Route::post('tasks/{task}/comments', [TaskController::class, 'addComment']);
     Route::delete('tasks/{task}/comments/{comment}',  [TaskController::class, 'deleteComment']);
 
     // Members
-    Route::get('projects/{project}/members',          [MemberController::class, 'index']);
-    Route::post('projects/{project}/members',         [MemberController::class, 'store']);
+    Route::get('projects/{project}/members', [MemberController::class, 'index']);
+    Route::post('projects/{project}/members', [MemberController::class, 'store']);
     Route::delete('projects/{project}/members/{user}',[MemberController::class, 'destroy']);
 
     // Reports
-    Route::get('reports/projects',                    [ReportController::class, 'projectSummary']);
-    Route::get('reports/projects/{project}',          [ReportController::class, 'projectDetail']);
+    Route::get('reports/projects', [ReportController::class, 'projectSummary']);
+    Route::get('reports/projects/{project}', [ReportController::class, 'projectDetail']);
+
+    // Task Detail
+    Route::get('tasks/{task}/detail', [TaskDetailController::class, 'show']);
+
+    // Checklist
+    Route::post('tasks/{task}/checklists', [TaskDetailController::class, 'addChecklist']);
+    Route::patch('tasks/{task}/checklists/{checklist}/toggle', [TaskDetailController::class, 'toggleChecklist']);
+    Route::delete('tasks/{task}/checklists/{checklist}', [TaskDetailController::class, 'deleteChecklist']);
+
+    // Attachments
+    Route::post('tasks/{task}/attachments', [TaskDetailController::class, 'addAttachment']);
+    Route::delete('tasks/{task}/attachments/{attachment}', [TaskDetailController::class, 'deleteAttachment']);
 });
