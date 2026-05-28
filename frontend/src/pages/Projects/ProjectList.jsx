@@ -93,7 +93,7 @@ export default function ProjectList() {
           <SelectTrigger className="w-44 bg-white border-slate-200 rounded-xl">
             <SelectValue placeholder="All Status" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white z-50 border border-slate-200 shadow-md rounded-xl">
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="on_track">In Progress</SelectItem>
             <SelectItem value="delayed">Delayed</SelectItem>
