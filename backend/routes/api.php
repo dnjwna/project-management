@@ -91,6 +91,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/invitations/send',                  [InvitationController::class, 'send']);
     Route::patch('/invitations/{invitation}/revoke',  [InvitationController::class, 'revoke']);
 
-    // Tambah di dalam group auth:sanctum
+    // File upload
     Route::post('tasks/{task}/attachments/upload', [TaskDetailController::class, 'uploadFile']);
+
+    // Profile
+    Route::put('/profile', [\App\Http\Controllers\Api\ProfileController::class, 'update']);
+    Route::put('/profile/password', [\App\Http\Controllers\Api\ProfileController::class, 'updatePassword']);
 });

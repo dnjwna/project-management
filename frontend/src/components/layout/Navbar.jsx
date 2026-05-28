@@ -101,7 +101,10 @@ export default function Navbar() {
                 <p className="text-xs text-slate-400 capitalize">{user?.role || 'Role'}</p>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2 cursor-pointer rounded-xl">
+              <DropdownMenuItem 
+                onClick={() => navigate('/profile')} 
+                className="gap-2 cursor-pointer rounded-xl"
+              >
                 <User size={14} /> Profile
               </DropdownMenuItem>
               <DropdownMenuSeparator />

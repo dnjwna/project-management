@@ -56,6 +56,15 @@ const authSlice = createSlice({
   },
   reducers: {
     clearError: (state) => { state.error = null },
+    
+    // TAMBAHAN: Action untuk update data user
+    updateUser: (state, action) => {
+      // 1. Tumpuk data state lama dengan data baru
+      state.user = { ...state.user, ...action.payload }
+      
+      // 2. Simpan juga ke localStorage agar tidak hilang saat di-refresh
+      localStorage.setItem('user', JSON.stringify(state.user))
+    },
   },
   extraReducers: (builder) => {
     // Login
@@ -97,5 +106,5 @@ const authSlice = createSlice({
   },
 })
 
-export const { clearError } = authSlice.actions
+export const { clearError, updateUser } = authSlice.actions
 export default authSlice.reducer

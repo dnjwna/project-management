@@ -11,6 +11,7 @@ import TaskList from './pages/Tasks/TaskList'
 import UserManagement from './pages/Admin/UserManagement'
 import AdminReports from './pages/Admin/AdminReports'
 import InvitationManagement from './pages/Admin/InvitationManagement'
+import Profile from './pages/Profile/Profile'
 
 function AppLayout({ children, adminOnly = false }) {
   return (
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/projects" element={<AppLayout><ProjectList /></AppLayout>} />
         <Route path="/projects/:id" element={<AppLayout><ProjectDetail /></AppLayout>} />
         <Route path="/projects/:id/tasks" element={<AppLayout><TaskList /></AppLayout>} />
+        <Route path="/profile" element={<AppLayout><Profile /></AppLayout>} />
 
         {/* Admin Only */}
         <Route path="/admin/users" element={<AppLayout adminOnly><UserManagement /></AppLayout>} />
