@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Project extends Model
 {
+    protected $appends = ['progress'];
+
     use HasFactory;
 
     protected $fillable = [
@@ -39,11 +41,16 @@ class Project extends Model
         return $this->hasMany(Task::class);
     }
 
-    public function getProgressAttribute(): int
+    public function getProgressAttribute()
     {
-        $total = $this->tasks()->count();
-        if ($total === 0) return 0;
-        $done = $this->tasks()->where('status', 'done')->count();
-        return (int) round(($done / $total) * 100);
+        $totalTasks = $this->tasks()->count();
+        
+        if ($totalTasks === 0) {
+            return 0;
+        }
+
+        $doneTasks = $this->tasks()->where('status', 'done')->count();
+        
+        return (int) round(($doneTasks / $totalTasks) * 100);
     }
 }

@@ -8,11 +8,13 @@ import {
 export default function Modal({ isOpen, onClose, title, children }) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-slate-800 border-slate-700 text-white sm:max-w-lg">
+      <DialogContent className="bg-white border-slate-200 text-slate-900 sm:max-w-lg rounded-[2rem] p-6 shadow-xl">
         <DialogHeader>
-          <DialogTitle className="text-white">{title}</DialogTitle>
+          <DialogTitle className="text-xl font-extrabold text-slate-900">{title}</DialogTitle>
         </DialogHeader>
-        {children}
+        <div className="pt-2">
+          {children}
+        </div>
       </DialogContent>
     </Dialog>
   )

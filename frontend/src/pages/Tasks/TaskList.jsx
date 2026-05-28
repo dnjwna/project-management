@@ -119,7 +119,8 @@ export default function TaskList() {
     dispatch(fetchTasks({ projectId, params: { limit: 100 } }))
   }
 
-  const inputClass = "w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 text-sm"
+  // ✅ MODIFIKASI: Mengubah input style menjadi light mode minimalis
+  const inputClass = "w-full px-4 py-2.5 rounded-xl bg-transparent border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black text-sm transition-all"
 
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)] -mx-6 -my-8">
@@ -145,7 +146,7 @@ export default function TaskList() {
               placeholder="Search tasks..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 pr-4 py-2 text-sm rounded-xl border border-slate-200 bg-[#F8F9FA] text-slate-700 focus:outline-none focus:border-emerald-400 w-44"
+              className="pl-8 pr-4 py-2 text-sm rounded-xl border border-slate-200 bg-[#F8F9FA] text-slate-700 focus:outline-none focus:border-black w-44"
             />
           </div>
 
@@ -295,20 +296,21 @@ export default function TaskList() {
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editTask ? 'Edit Task' : 'New Task'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-sm text-slate-300">Title</label>
+            <label className="text-sm font-semibold text-slate-700">Title</label>
             <input required value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="Task title" className={inputClass} />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm text-slate-300">Description</label>
+            <label className="text-sm font-semibold text-slate-700">Description</label>
             <textarea rows={2} value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Add description..."
               className={`${inputClass} resize-none`} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-sm text-slate-300">Priority</label>
+              <label className="text-sm font-semibold text-slate-700">Priority</label>
               <select value={form.priority}
                 onChange={(e) => setForm({ ...form, priority: e.target.value })}
                 className={inputClass}>
@@ -318,7 +320,7 @@ export default function TaskList() {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm text-slate-300">Status</label>
+              <label className="text-sm font-semibold text-slate-700">Status</label>
               <select value={form.status || 'todo'}
                 onChange={(e) => setForm({ ...form, status: e.target.value })}
                 className={inputClass}>
@@ -331,13 +333,13 @@ export default function TaskList() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-sm text-slate-300">Due Date</label>
+              <label className="text-sm font-semibold text-slate-700">Due Date</label>
               <input type="date" value={form.due_date}
                 onChange={(e) => setForm({ ...form, due_date: e.target.value })}
                 className={inputClass} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm text-slate-300">Assign To</label>
+              <label className="text-sm font-semibold text-slate-700">Assign To</label>
               <select value={form.assigned_to}
                 onChange={(e) => setForm({ ...form, assigned_to: e.target.value })}
                 className={inputClass}>
@@ -348,11 +350,15 @@ export default function TaskList() {
               </select>
             </div>
           </div>
-          <div className="flex justify-end gap-3 pt-2">
+          
+          {/* ✅ MODIFIKASI: Mengubah tombol Cancel & Submit agar selaras dengan tema utama (Black Minimalist) */}
+          <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="ghost" onClick={() => setShowModal(false)}
-              className="text-slate-400">Cancel</Button>
+              className="text-slate-500 hover:text-slate-900 font-medium">
+              Cancel
+            </Button>
             <Button type="submit" disabled={submitting}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl">
+              className="bg-black hover:bg-slate-800 text-white font-bold rounded-xl px-6 transition-all">
               {submitting ? 'Saving...' : editTask ? 'Save Changes' : 'Create Task'}
             </Button>
           </div>

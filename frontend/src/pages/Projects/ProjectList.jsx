@@ -63,7 +63,7 @@ export default function ProjectList() {
     await dispatch(deleteProject(id))
   }
 
-  const inputClass = "w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 text-sm"
+  const inputClass = "w-full px-4 py-2.5 rounded-xl bg-transparent border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black text-sm transition-all"
 
   return (
     <div>
@@ -211,13 +211,13 @@ export default function ProjectList() {
       <Modal isOpen={showModal} onClose={() => { setShowModal(false); setForm(initForm) }} title="Create New Project">
         <form onSubmit={handleCreate} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-sm text-slate-300">Project Name</label>
+            <label className="text-sm font-semibold text-slate-700">Project Name</label>
             <input required value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="e.g. Website Redesign" className={inputClass} />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm text-slate-300">Description</label>
+            <label className="text-sm font-semibold text-slate-700">Description</label>
             <textarea rows={3} value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Project description..."
@@ -225,24 +225,26 @@ export default function ProjectList() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-sm text-slate-300">Start Date</label>
+              <label className="text-sm font-semibold text-slate-700">Start Date</label>
               <input required type="date" value={form.start_date}
                 onChange={(e) => setForm({ ...form, start_date: e.target.value })}
                 className={inputClass} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm text-slate-300">End Date</label>
+              <label className="text-sm font-semibold text-slate-700">End Date</label>
               <input required type="date" value={form.end_date}
                 onChange={(e) => setForm({ ...form, end_date: e.target.value })}
                 className={inputClass} />
             </div>
           </div>
-          <div className="flex justify-end gap-3 pt-2">
+          
+          {/* ✅ MODIFIKASI: Tombol Cancel & Submit (Black Minimalist) */}
+          <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="ghost"
               onClick={() => setShowModal(false)}
-              className="text-slate-400">Cancel</Button>
+              className="text-slate-500 hover:text-slate-900 font-medium">Cancel</Button>
             <Button type="submit" disabled={submitting}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl">
+              className="bg-black hover:bg-slate-800 text-white font-bold rounded-xl px-6 transition-all">
               {submitting ? 'Creating...' : 'Create Project'}
             </Button>
           </div>

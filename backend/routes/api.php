@@ -8,11 +8,14 @@ use App\Http\Controllers\Api\MemberController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TaskDetailController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\InvitationController;
 use Illuminate\Http\Request;
 
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
+Route::get('/invitations/validate/{token}', [InvitationController::class, 'validate']);
+Route::post('/invitations/accept', [InvitationController::class, 'accept']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -82,4 +85,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy']);
     Route::delete('/notifications', [NotificationController::class, 'clearAll']);
+
+    // Invitations
+    Route::get('/invitations',                        [InvitationController::class, 'index']);
+    Route::post('/invitations/send',                  [InvitationController::class, 'send']);
+    Route::patch('/invitations/{invitation}/revoke',  [InvitationController::class, 'revoke']);
 });

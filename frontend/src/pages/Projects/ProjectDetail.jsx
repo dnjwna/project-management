@@ -112,7 +112,7 @@ export default function ProjectDetail() {
     }
   }
 
-  const inputClass = "w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 text-sm"
+  const inputClass = "w-full px-4 py-2.5 rounded-xl bg-transparent border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black text-sm transition-all"
 
   if (loading) return <div className="py-20"><Spinner /></div>
   if (!project) return <p className="text-slate-400">Project not found.</p>
@@ -289,19 +289,19 @@ export default function ProjectDetail() {
       <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Edit Project">
         <form onSubmit={handleEdit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-sm text-slate-300">Project Name</label>
+            <label className="text-sm font-semibold text-slate-700">Project Name</label>
             <input required value={editForm.name || ''}
               onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
               className={inputClass} />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm text-slate-300">Description</label>
+            <label className="text-sm font-semibold text-slate-700">Description</label>
             <textarea rows={3} value={editForm.description || ''}
               onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
               className={`${inputClass} resize-none`} />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm text-slate-300">Status</label>
+            <label className="text-sm font-semibold text-slate-700">Status</label>
             <select value={editForm.status || ''}
               onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
               className={inputClass}>
@@ -312,23 +312,23 @@ export default function ProjectDetail() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-sm text-slate-300">Start Date</label>
+              <label className="text-sm font-semibold text-slate-700">Start Date</label>
               <input type="date" value={editForm.start_date || ''}
                 onChange={(e) => setEditForm({ ...editForm, start_date: e.target.value })}
                 className={inputClass} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-sm text-slate-300">End Date</label>
+              <label className="text-sm font-semibold text-slate-700">End Date</label>
               <input type="date" value={editForm.end_date || ''}
                 onChange={(e) => setEditForm({ ...editForm, end_date: e.target.value })}
                 className={inputClass} />
             </div>
           </div>
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}
-              className="text-slate-400">Cancel</Button>
+              className="text-slate-500 hover:text-slate-900 font-medium">Cancel</Button>
             <Button type="submit" disabled={submitting}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl">
+              className="bg-black hover:bg-slate-800 text-white font-bold rounded-xl px-6 transition-all">
               {submitting ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
@@ -339,7 +339,7 @@ export default function ProjectDetail() {
       <Modal isOpen={showMemberModal} onClose={() => setShowMemberModal(false)} title="Add Member">
         <form onSubmit={handleAddMember} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-sm text-slate-300">Select User</label>
+            <label className="text-sm font-semibold text-slate-700">Select User</label>
             <select required value={newMember.user_id}
               onChange={(e) => setNewMember({ ...newMember, user_id: e.target.value })}
               className={inputClass}>
@@ -350,7 +350,7 @@ export default function ProjectDetail() {
             </select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm text-slate-300">Role</label>
+            <label className="text-sm font-semibold text-slate-700">Role</label>
             <select value={newMember.role}
               onChange={(e) => setNewMember({ ...newMember, role: e.target.value })}
               className={inputClass}>
@@ -358,16 +358,16 @@ export default function ProjectDetail() {
               <option value="manager">Manager</option>
             </select>
           </div>
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="ghost" onClick={() => setShowMemberModal(false)}
-              className="text-slate-400">Cancel</Button>
+              className="text-slate-500 hover:text-slate-900 font-medium">Cancel</Button>
             <Button type="submit" disabled={submitting}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl">
+              className="bg-black hover:bg-slate-800 text-white font-bold rounded-xl px-6 transition-all">
               {submitting ? 'Adding...' : 'Add Member'}
             </Button>
           </div>
         </form>
       </Modal>
-    </div>
+      </div>
   )
 }

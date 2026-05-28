@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
-import { registerUser, clearError } from '../features/auth/authSlice'
-import { useAuth } from '../hooks/useAuth'
+import { clearError } from '../features/auth/authSlice'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import api from '../utils/axios'
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 
-// Import asset lokal yang sama
+// Import asset lokal
 import ilustrasiBanner from '../assets/vector2.jpeg'
 import ilustrasiDua from '../assets/vector3.jpeg'
 import ilustrasiTiga from '../assets/vector4.jpeg'
@@ -22,13 +22,13 @@ const sliderData = [
   },
   {
     id: 2,
-    image: ilustrasiDua, // Nanti tinggal ganti asset lain kalau ada
+    image: ilustrasiDua,
     title: 'Collaborate seamlessly with your entire',
     highlight: 'Team'
   },
   {
     id: 3,
-    image: ilustrasiTiga, // Nanti tinggal ganti asset lain kalau ada
+    image: ilustrasiTiga,
     title: 'Track your progress and hit your',
     highlight: 'Deadlines'
   }
@@ -37,16 +37,40 @@ const sliderData = [
 export default function Register() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { isAuthenticated, loading, error } = useAuth()
-  const [form, setForm] = useState({ name: '', email: '', password: '', password_confirmation: '', role: 'member' })
+  const [searchParams] = useSearchParams()
+  const token = searchParams.get('token')
+
+  // State Logika Undangan
+  const [status, setStatus] = useState('validating') // validating | valid | invalid
+  const [invitation, setInvitation] = useState(null)
+  const [form, setForm] = useState({ name: '', password: '', password_confirmation: '' })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
   
-  // State Slider
+  // State Slider Visual
   const [currentSlide, setCurrentSlide] = useState(0)
 
+  // Efek Validasi Token Undangan
   useEffect(() => {
-    if (isAuthenticated) navigate('/dashboard')
-    return () => dispatch(clearError())
-  }, [isAuthenticated, navigate, dispatch])
+    dispatch(clearError())
+    if (!token) {
+      setStatus('invalid')
+      return
+    }
+    validateToken()
+  }, [token, dispatch])
+
+  const validateToken = async () => {
+    setStatus('validating')
+    try {
+      const res = await api.get(`/invitations/validate/${token}`)
+      setInvitation(res.data)
+      setStatus('valid')
+    } catch {
+      setStatus('invalid')
+    }
+  }
 
   // Effect Autoplay Slider (3.5 detik)
   useEffect(() => {
@@ -56,17 +80,89 @@ export default function Register() {
     return () => clearInterval(timer)
   }, [])
 
+  // Handle Submit Form
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (form.password !== form.password_confirmation) return alert('Passwords do not match')
-    const result = await dispatch(registerUser(form))
-    if (registerUser.fulfilled.match(result)) navigate('/dashboard')
+    setError('')
+
+    if (form.password !== form.password_confirmation) {
+      setError('Passwords do not match')
+      return
+    }
+
+    setLoading(true)
+    try {
+      await api.post('/invitations/accept', {
+        token,
+        name: form.name,
+        password: form.password,
+        password_confirmation: form.password_confirmation,
+      })
+      setSuccess(true)
+      setTimeout(() => navigate('/login'), 2500)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Something went wrong')
+    }
+    setLoading(false)
   }
 
+  // 1. STATE RENDER: Validating / Memeriksa Undangan
+  if (status === 'validating') {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center font-sans">
+        <div className="text-center">
+          <Loader2 size={40} className="text-black animate-spin mx-auto mb-4" />
+          <p className="text-slate-500 font-medium text-sm">Validating your invitation...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // 2. STATE RENDER: Token Tidak Valid / Kedaluwarsa
+  if (status === 'invalid') {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center px-4 font-sans">
+        <div className="w-full max-w-md text-center">
+          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <XCircle size={32} className="text-red-600" />
+          </div>
+          <h1 className="text-2xl font-extrabold text-slate-900 mb-2">Invalid Invitation</h1>
+          <p className="text-slate-500 text-sm mb-6 max-w-sm mx-auto leading-relaxed">
+            This invitation link is invalid or has expired. Please contact your administrator for a new invitation.
+          </p>
+          <Button 
+            onClick={() => navigate('/login')} 
+            className="bg-black hover:bg-slate-800 text-white font-bold rounded-full h-12 px-6 transition-all"
+          >
+            Back to Login
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // 3. STATE RENDER: Registrasi Berhasil
+  if (success) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center px-4 font-sans">
+        <div className="w-full max-w-md text-center">
+          <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle size={32} className="text-emerald-600" />
+          </div>
+          <h1 className="text-2xl font-extrabold text-slate-900 mb-2">Account Created!</h1>
+          <p className="text-slate-500 text-sm animate-pulse">
+            Redirecting you to login...
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // 4. STATE RENDER: Token Valid (Menampilkan Form & Slider Visual)
   return (
     <div className="min-h-screen bg-white flex p-4 lg:p-6 font-sans">
       
-      {/* Kolom Kiri: Form Register (Tema Terang & Rounded Full) */}
+      {/* Kolom Kiri: Form Register */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-4 sm:px-12 lg:px-24 relative overflow-y-auto py-8">
         
         <div className="w-full max-w-md">
@@ -74,22 +170,39 @@ export default function Register() {
           <div className="mb-8 text-center lg:text-left">
             <h1 className="text-4xl font-extrabold text-app-dark mb-3">Create Account</h1>
             <p className="text-slate-500 text-sm leading-relaxed">
-              Join <span className="font-bold text-app-dark">ProjectHub</span> today and start managing your projects efficiently.
+              You've been invited to join <span className="font-bold text-app-dark">ProjectHub</span> as a{' '}
+              <span className="text-emerald-600 font-extrabold capitalize">{invitation?.role}</span>.
             </p>
           </div>
 
+          {/* Error Alert */}
           {error && (
-            <div className="mb-6 px-4 py-3 rounded-2xl bg-red-50 text-red-600 text-sm font-medium text-center">
+            <div className="mb-6 px-4 py-3 rounded-2xl bg-red-50 text-red-600 text-sm font-medium text-center flex items-center justify-center gap-2">
+              <XCircle size={16} />
               {error}
             </div>
           )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
+            
+            {/* Email Field — Readonly */}
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-400 ml-4">Email Address (Read-only)</label>
+              <Input
+                type="email"
+                value={invitation?.email || ''}
+                disabled
+                className="bg-slate-100 border-slate-200 text-slate-500 rounded-full h-14 px-6 cursor-not-allowed"
+              />
+            </div>
+
+            {/* Name Field */}
             <div className="space-y-1">
               <Input
                 type="text"
                 required
+                autoFocus
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Full Name"
@@ -97,33 +210,7 @@ export default function Register() {
               />
             </div>
 
-            <div className="space-y-1">
-              <Input
-                type="email"
-                required
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="Email Address"
-                className="bg-transparent border-slate-300 text-slate-900 placeholder:text-slate-400 rounded-full h-14 px-6 focus-visible:ring-1 focus-visible:ring-app-dark focus-visible:border-app-dark transition-all"
-              />
-            </div>
-
-            {/* Select Role - Disesuaikan biar serasi jadi Rounded Full */}
-            <div className="space-y-1">
-              <Select 
-                value={form.role} 
-                onValueChange={(value) => setForm({ ...form, role: value })}
-              >
-                <SelectTrigger className="w-full bg-transparent border-slate-300 text-slate-900 rounded-full h-14 px-6 focus:ring-1 focus:ring-app-dark focus:border-app-dark transition-all text-left">
-                  <SelectValue placeholder="Select Role" />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-slate-200">
-                  <SelectItem value="member">Member</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
+            {/* Password Field */}
             <div className="space-y-1">
               <Input
                 type="password"
@@ -135,6 +222,7 @@ export default function Register() {
               />
             </div>
 
+            {/* Password Confirmation Field */}
             <div className="space-y-1">
               <Input
                 type="password"
@@ -146,38 +234,24 @@ export default function Register() {
               />
             </div>
 
+            {/* Submit Button */}
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-black hover:bg-slate-800 text-white font-bold rounded-full h-14 mt-2 transition-all text-base"
+              className="w-full bg-black hover:bg-slate-800 text-white font-bold rounded-full h-14 mt-4 transition-all text-base flex items-center justify-center gap-2"
             >
-              {loading ? 'Creating account...' : 'Register'}
+              {loading ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  <span>Creating account...</span>
+                </>
+              ) : (
+                'Register'
+              )}
             </Button>
           </form>
 
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-slate-500">or register with</span>
-            </div>
-          </div>
-
-          {/* Social Register */}
-          <div className="flex justify-center gap-4">
-            <button className="w-12 h-12 rounded-full bg-black flex items-center justify-center hover:bg-slate-800 transition-colors">
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#fff"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#fff"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#fff"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#fff"/></svg>
-            </button>
-            <button className="w-12 h-12 rounded-full bg-black flex items-center justify-center hover:bg-slate-800 transition-colors">
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.04 2.34-.85 3.73-.78 1.44.03 2.59.57 3.32 1.6-2.84 1.7-2.35 5.56.27 6.64-.78 1.87-1.87 3.57-2.4 4.71zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.33 2.32-1.78 4.29-3.74 4.25z"/></svg>
-            </button>
-            <button className="w-12 h-12 rounded-full bg-black flex items-center justify-center hover:bg-slate-800 transition-colors">
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-            </button>
-          </div>
-
+          {/* Footer Link */}
           <p className="text-center text-slate-500 text-sm mt-8">
             Already have an account?{' '}
             <Link to="/login" className="text-[#000101] hover:underline font-bold transition-colors">
@@ -192,10 +266,7 @@ export default function Register() {
         
         {/* Container Utama Gambar Slider Gaya 3 */}
         <div className="relative w-full max-w-sm mb-12 z-10 aspect-square">
-            
-            {/* Box dengan border solid & offset shadow tegas */}
             <div className="relative w-full h-full bg-white rounded-[2rem] border-2 border-app-dark shadow-[8px_8px_0px_0px_rgba(30,41,59,1)] overflow-hidden transition-transform hover:-translate-y-1 hover:translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(30,41,59,1)] duration-300">
-              
               {sliderData.map((slide, index) => (
                 <img 
                   key={slide.id}
@@ -226,7 +297,7 @@ export default function Register() {
             ))}
           </div>
           
-          {/* Teks Slider Dinamis (Sudah di-fix agar tidak menciut ke bawah) */}
+          {/* Teks Slider Dinamis */}
           <div className="relative w-full">
             {sliderData.map((slide, index) => (
               <div 

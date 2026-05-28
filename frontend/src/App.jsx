@@ -11,6 +11,7 @@ import TaskList from './pages/Tasks/TaskList'
 import AdminProjects from './pages/Admin/AdminProjects'
 import UserManagement from './pages/Admin/UserManagement'
 import AdminReports from './pages/Admin/AdminReports'
+import InvitationManagement from './pages/Admin/InvitationManagement'
 
 function AppLayout({ children, adminOnly = false }) {
   return (
@@ -42,6 +43,9 @@ export default function App() {
         {/* Redirect */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
+        {/* Invitation Management */}
+        <Route path="/admin/invitations" element={<AppLayout adminOnly><InvitationManagement /></AppLayout>} />
       </Routes>
     </BrowserRouter>
   )

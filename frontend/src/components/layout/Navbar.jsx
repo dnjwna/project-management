@@ -32,8 +32,9 @@ export default function Navbar() {
     { to: '/dashboard', label: 'Home' },
     { to: '/projects', label: 'Projects' },
     ...(isAdmin ? [
-      { to: '/admin/reports', label: 'Reports' },
-      { to: '/admin/users', label: 'Team' },
+      { to: '/admin/reports',     label: 'Reports' },
+      { to: '/admin/users',       label: 'Team' },
+      { to: '/admin/invitations', label: 'Invitations' },
     ] : []),
   ]
 
