@@ -15,9 +15,9 @@ const getColor = (name) => avatarColors[(name?.charCodeAt(0) || 0) % avatarColor
 const getInitials = (name) => name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?'
 
 const cardBg = {
-  on_track: 'bg-emerald-100',
+  on_track: 'bg-green-100',
   delayed: 'bg-red-50',
-  completed: 'bg-emerald-50',
+  completed: 'bg-blue-50',
 }
 
 const statusLabel = {
@@ -36,7 +36,7 @@ export default function Dashboard() {
   useEffect(() => {
     dispatch(fetchProjects({ limit: 9 }))
     if (isAdmin) dispatch(fetchProjectSummary())
-  }, [])
+  }, [dispatch, isAdmin])
 
   // Group projects
   const inProgress = projects.filter(p => p.status === 'on_track')
@@ -87,12 +87,11 @@ export default function Dashboard() {
                   const progress = project.progress ?? 0
                   const bg = cardBg[project.status] || 'bg-white'
                   const status = statusLabel[project.status]
-
                   return (
                     <div
                       key={project.id}
                       onClick={() => navigate(`/projects/${project.id}`)}
-                      className={`${bg} rounded-2xl p-5 cursor-pointer hover:shadow-md transition-all group border border-transparent hover:border-slate-200`}
+                      className={`${bg} rounded-2xl p-5 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group border border-transparent hover:border-slate-200`}
                     >
                       {/* Tags */}
                       <div className="flex items-center gap-2 mb-4">
@@ -113,6 +112,10 @@ export default function Dashboard() {
                       {/* Progress */}
                       <div className="mt-4 mb-4">
                         <p className="text-4xl font-bold text-app-dark">{progress}%</p>
+                        <div className="w-full h-2 bg-white/60 rounded-full overflow-hidden mt-3">
+                        <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${progress}%` }}
+                          />
+                        </div>
                         <p className={`text-xs font-medium mt-0.5 ${status?.color}`}>{status?.label}</p>
                       </div>
 
@@ -147,7 +150,7 @@ export default function Dashboard() {
                     <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
                       <Plus size={20} className="text-slate-400" />
                     </div>
-                    <p className="text-sm text-slate-400 font-medium">Add Task</p>
+                    <p className="text-sm text-slate-400 font-medium">New Project</p>
                   </div>
                 )}
               </div>
