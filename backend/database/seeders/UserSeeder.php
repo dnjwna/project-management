@@ -10,21 +10,19 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Admin
         User::create([
-            'name'     => 'Admin Utama',
-            'email'    => 'admin@pm.com',
+            'name'     => 'Alex Rivera',
+            'email'    => 'admin@projecthub.com',
             'password' => Hash::make('password123'),
             'role'     => 'admin',
         ]);
 
-        // Members
         $members = [
-            ['name' => 'Budi Santoso',   'email' => 'budi@pm.com'],
-            ['name' => 'Sari Dewi',      'email' => 'sari@pm.com'],
-            ['name' => 'Andi Pratama',   'email' => 'andi@pm.com'],
-            ['name' => 'Rina Kusuma',    'email' => 'rina@pm.com'],
-            ['name' => 'Dika Ramadhan',  'email' => 'dika@pm.com'],
+            ['name' => 'Sarah Chen',      'email' => 'sarah@projecthub.com'],
+            ['name' => 'Marcus Johnson',  'email' => 'marcus@projecthub.com'],
+            ['name' => 'Priya Patel',     'email' => 'priya@projecthub.com'],
+            ['name' => 'David Kim',       'email' => 'david@projecthub.com'],
+            ['name' => 'Luna Vasquez',    'email' => 'luna@projecthub.com'],
         ];
 
         foreach ($members as $member) {
