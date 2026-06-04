@@ -5,22 +5,31 @@ import axios from 'axios'
 window.Pusher = Pusher
 
 const createEcho = () => {
+  // Mengambil config dari .env, kalau gak ada fallback ke IP VPS lo
+  const wsHost = import.meta.env.VITE_REVERB_HOST || '38.47.180.18'
+  const wsPort = parseInt(import.meta.env.VITE_REVERB_PORT || '8080')
+  
+  // Karena server lo pake HTTPS (SSL) di port 8443, websocket harus pake WSS (Secure)
+  const isSecure = window.location.protocol === 'https:' || import.meta.env.VITE_REVERB_SCHEME === 'https'
+
   return new Echo({
     broadcaster: 'reverb',
     key: import.meta.env.VITE_REVERB_APP_KEY || 'my-app-key',
-    wsHost: import.meta.env.VITE_REVERB_HOST || 'localhost',
-    wsPort: parseInt(import.meta.env.VITE_REVERB_PORT || '8080'),
-    wssPort: parseInt(import.meta.env.VITE_REVERB_PORT || '8080'),
-    forceTLS: false,
+    wsHost: wsHost,
+    wsPort: wsPort,
+    wssPort: wsPort,
+    forceTLS: isSecure, // Otomatis true kalau hit lewat https
     enabledTransports: ['ws', 'wss'],
     authorizer: (channel) => ({
       authorize: (socketId, callback) => {
-        // 1. Ambil token di dalam sini supaya selalu mendapatkan yang terbaru setelah login
         const token = localStorage.getItem('token') 
 
-        // 2. URL diganti ke /broadcasting/auth (tanpa /api) agar tidak 404
+        const baseUrl = import.meta.env.VITE_API_URL 
+          ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') 
+          : 'https://38.47.180.18:8443/student06'
+
         axios.post(
-          'http://127.0.0.1:8000/broadcasting/auth', 
+          `${baseUrl}/broadcasting/auth`, 
           { socket_id: socketId, channel_name: channel.name },
           {
             headers: {
