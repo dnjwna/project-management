@@ -1,4 +1,4 @@
-# Supervisor Config — ProjectHub
+# Supervisor Config — FlowStep
 
 ## File Structure
 

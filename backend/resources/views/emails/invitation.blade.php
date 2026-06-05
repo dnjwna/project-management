@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>You're Invited to ProjectHub</title>
+  <title>You're Invited to FlowStep</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', -apple-system, sans-serif; background: #F8F9FA; color: #1E293B; }
@@ -35,7 +35,7 @@
           <div style="width:36px;height:36px;background:#10B981;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;">
             <span style="color:#fff;font-weight:700;font-size:14px;">PM</span>
           </div>
-          <span style="color:#fff;font-size:20px;font-weight:700;margin-left:10px;">ProjectHub</span>
+          <span style="color:#fff;font-size:20px;font-weight:700;margin-left:10px;">FlowStep</span>
         </div>
       </div>
 
@@ -43,7 +43,7 @@
       <div class="body">
         <p class="greeting">You've been invited! 🎉</p>
         <p class="text">
-          <strong>{{ $inviterName }}</strong> has invited you to join <strong>ProjectHub</strong> as a team member.
+          <strong>{{ $inviterName }}</strong> has invited you to join <strong>FlowStep</strong> as a team member.
         </p>
         <div>
           <span class="role-badge">{{ $role }}</span>
@@ -66,7 +66,7 @@
 
       <!-- Footer -->
       <div class="footer">
-        <p>If you didn't expect this invitation, you can safely ignore this email.<br/>© 2026 ProjectHub. All rights reserved.</p>
+        <p>If you didn't expect this invitation, you can safely ignore this email.<br/>© 2026 FlowStep. All rights reserved.</p>
       </div>
     </div>
   </div>

@@ -17,7 +17,7 @@ const sliderData = [
     id: 1,
     image: ilustrasiBanner,
     title: 'Make your work easier and organized with',
-    highlight: 'ProjectHub'
+    highlight: 'FlowStep'
   },
   {
     id: 2,
@@ -72,7 +72,7 @@ export default function Login() {
           <div className="mb-10 text-center lg:text-left">
             <h1 className="text-4xl font-extrabold text-app-dark mb-3">Welcome back!</h1>
             <p className="text-slate-500 text-sm leading-relaxed">
-              Simplify your workflow and boost your productivity with <span className="font-bold text-app-dark">ProjectHub</span>.
+              Simplify your workflow and boost your productivity with <span className="font-bold text-app-dark">FlowStep</span>.
             </p>
           </div>
 

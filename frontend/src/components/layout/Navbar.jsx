@@ -50,7 +50,7 @@ export default function Navbar() {
           <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
              <div className="w-3 h-3 bg-white rotate-45" /> 
           </div>
-          <span className="font-semibold text-black text-sm">ProjectHub</span>
+          <span className="font-semibold text-black text-sm">FlowStep</span>
         </div>
 
         {/* TENGAH: Navigation Pill */}

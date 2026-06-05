@@ -18,7 +18,7 @@ class InvitationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'You\'re invited to join ProjectHub',
+            subject: 'You\'re invited to join FlowStep',
         );
     }
 
@@ -29,7 +29,7 @@ class InvitationMail extends Mailable
             with: [
                 'inviterName' => $this->invitation->inviter->name,
                 'role'        => $this->invitation->role,
-                'registerUrl' => "http://localhost:5173/register?token={$this->invitation->token}",
+                'registerUrl' => env('FRONTEND_URL', 'http://localhost:5173') . "/register?token={$this->invitation->token}",
                 'expiresAt'   => $this->invitation->expires_at->format('d M Y, H:i'),
             ],
         );
