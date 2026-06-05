@@ -1,0 +1,20 @@
+{
+  "experimentalServices": {
+    "frontend": {
+      "root": "frontend",
+      "routePrefix": "/",
+      "framework": "vite"
+    },
+    "backend": {
+      "root": "backend",
+      "routePrefix": "/_backend",
+      "framework": "vite"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api-vps/:path*",
+      "destination": "https://38.47.180.18:8443/student06/api/:path*"
+    }
+  ]
+}
