@@ -3,6 +3,14 @@
     {
       "source": "/api-vps/:path*",
       "destination": "https://38.47.180.18:8443/student06/api/:path*"
+    },
+    {
+      "source": "/_backend/:path*",
+      "destination": "https://38.47.180.18:8443/student06/:path*"
+    },
+    {
+      "source": "/(:path*)",
+      "destination": "/index.html"
     }
   ]
 }
