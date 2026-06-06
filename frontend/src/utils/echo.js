@@ -5,28 +5,25 @@ import axios from 'axios'
 window.Pusher = Pusher
 
 const createEcho = () => {
-  const wsHost = import.meta.env.VITE_REVERB_HOST || '38.47.180.18'
-  const wsPort = parseInt(import.meta.env.VITE_REVERB_PORT || '6001') 
+  const token = localStorage.getItem('token')
 
   return new Echo({
     broadcaster: 'reverb',
     key: import.meta.env.VITE_REVERB_APP_KEY || 'my-app-key',
-    wsHost: wsHost,
-    wsPort: wsPort,
-    wssPort: wsPort,
-    forceTLS: false,          // KUNCI MATI: Mematikan paksaan SSL/WSS dari library
-    encrypted: false,         // KUNCI MATI: Memastikan client tidak enkripsi data ke wss
-    enabledTransports: ['ws'], // KUNCI MATI: Hanya izinkan protokol ws biasa
+    wsHost: import.meta.env.VITE_REVERB_HOST || '38.47.180.18',
+    wsPort: parseInt(import.meta.env.VITE_REVERB_PORT || '6001'),
+    wssPort: parseInt(import.meta.env.VITE_REVERB_PORT || '6001'),
+    forceTLS: false, 
+    disableStats: true,
+    enabledTransports: ['ws'], 
     authorizer: (channel) => ({
       authorize: (socketId, callback) => {
-        const token = localStorage.getItem('token') 
-
-        const baseUrl = '/_backend' 
-          ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') 
-          : 'https://38.47.180.18:8443/student06/backend/public' 
+        const baseUrl = import.meta.env.VITE_API_URL
+          ? import.meta.env.VITE_API_URL.replace(/\/api$/, '')
+          : 'https://38.47.180.18:8443/student06/backend/public'
 
         axios.post(
-          `${baseUrl}/broadcasting/auth`, 
+          `${baseUrl}/broadcasting/auth`,
           { socket_id: socketId, channel_name: channel.name },
           {
             headers: {
@@ -42,5 +39,3 @@ const createEcho = () => {
     }),
   })
 }
-
-export default createEcho
