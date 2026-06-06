@@ -7,9 +7,6 @@ import {
   markAllAsRead as markAll,
 } from '../features/notifications/notificationSlice'
 import api from '../utils/axios'
-import createEcho from '../utils/echo'
-
-let echoInstance = null
 
 export const useNotifications = () => {
   const dispatch = useDispatch()
@@ -24,40 +21,14 @@ export const useNotifications = () => {
   }
 
   useEffect(() => {
-    if (!user?.id) return
+    if (!user) return
 
     fetchNotifications()
 
-    // Cleanup instance lama
-    try {
-      if (echoInstance) {
-        echoInstance.disconnect()
-        echoInstance = null
-      }
-    } catch {}
+    // Polling setiap 15 detik
+    const interval = setInterval(fetchNotifications, 15000)
 
-    // Buat instance baru
-    try {
-      echoInstance = createEcho()
-
-      echoInstance
-        .private(`notifications.${user.id}`)
-        .listen('.notification.sent', (e) => {
-          if (e?.notification) {
-            dispatch(addNotification(e.notification))
-          }
-        })
-    } catch (err) {
-      console.error('Echo error:', err)
-    }
-
-    return () => {
-      try {
-        if (echoInstance) {
-          echoInstance.leave(`notifications.${user.id}`)
-        }
-      } catch {}
-    }
+    return () => clearInterval(interval)
   }, [user?.id])
 
   const handleMarkAsRead = async (notifId) => {
