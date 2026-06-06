@@ -13,9 +13,9 @@ const createEcho = () => {
     wsHost: import.meta.env.VITE_REVERB_HOST || '38.47.180.18',
     wsPort: parseInt(import.meta.env.VITE_REVERB_PORT || '6001'),
     wssPort: parseInt(import.meta.env.VITE_REVERB_PORT || '6001'),
-    forceTLS: false, 
+    forceTLS: false,
     disableStats: true,
-    enabledTransports: ['ws'], 
+    enabledTransports: ['ws'],
     authorizer: (channel) => ({
       authorize: (socketId, callback) => {
         const baseUrl = import.meta.env.VITE_API_URL
@@ -39,3 +39,5 @@ const createEcho = () => {
     }),
   })
 }
+
+export default createEcho
