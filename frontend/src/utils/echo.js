@@ -8,20 +8,22 @@ const createEcho = () => {
   const wsHost = import.meta.env.VITE_REVERB_HOST || '38.47.180.18'
   const wsPort = parseInt(import.meta.env.VITE_REVERB_PORT || '6001') 
 
+  const scheme = import.meta.env.VITE_REVERB_SCHEME || 'http'
+  const isSecure = scheme === 'https'
+
   return new Echo({
     broadcaster: 'reverb',
     key: import.meta.env.VITE_REVERB_APP_KEY || 'my-app-key',
     wsHost: wsHost,
     wsPort: wsPort,
     wssPort: wsPort,
-    forceTLS: false,          // KUNCI MATI: Mematikan paksaan SSL/WSS dari library
-    encrypted: false,         // KUNCI MATI: Memastikan client tidak enkripsi data ke wss
-    enabledTransports: ['ws'], // KUNCI MATI: Hanya izinkan protokol ws biasa
+    forceTLS: isSecure,                 
+    enabledTransports: ['ws', 'wss'],
     authorizer: (channel) => ({
       authorize: (socketId, callback) => {
         const token = localStorage.getItem('token') 
 
-        const baseUrl = '/_backend' 
+        const baseUrl = import.meta.env.VITE_API_URL 
           ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') 
           : 'https://38.47.180.18:8443/student06/backend/public' 
 
