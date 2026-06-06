@@ -21,7 +21,7 @@ const createEcho = () => {
       authorize: (socketId, callback) => {
         const token = localStorage.getItem('token') 
 
-        const baseUrl = import.meta.env.VITE_API_URL 
+        const baseUrl = '/_backend' 
           ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') 
           : 'https://38.47.180.18:8443/student06/backend/public' 
 
