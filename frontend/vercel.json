@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api-vps/:path*",
-      "destination": "https://38.47.180.18:8443/student06/api/:path*"
+      "destination": "https://project-management-production-f78d.up.railway.app/api/:path*"
     },
     {
       "source": "/_backend/:path*",
-      "destination": "https://38.47.180.18:8443/student06/:path*"
+      "destination": "https://project-management-production-f78d.up.railway.app/:path*"
     },
     {
       "source": "/:path*",
