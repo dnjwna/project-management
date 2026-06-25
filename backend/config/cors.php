@@ -13,7 +13,7 @@ return [
         'http://localhost:5173',
         'http://localhost:3000',
         'https://38.47.180.18:8443',
-        'https://flowstep.vercel.app', // <-- Pastikan ini ada di lokal juga
+        'https://flowstep.vercel.app',
     ],
 
     'allowed_origins_patterns' => [],
