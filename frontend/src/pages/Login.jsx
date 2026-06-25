@@ -47,7 +47,6 @@ export default function Login() {
     return () => dispatch(clearError())
   }, [isAuthenticated, navigate, dispatch])
 
-  // Effect Autoplay Slider (3.5 detik)
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev === sliderData.length - 1 ? 0 : prev + 1))
