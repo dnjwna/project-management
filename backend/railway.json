@@ -1,6 +1,6 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "deploy": {
-    "startCommand": "php artisan migrate --force && php artisan storage:link && (php artisan reverb:start --host=0.0.0.0 --port=8080 & php artisan serve --host=0.0.0.0 --port=$PORT)"
+    "startCommand": "php artisan config:clear && php artisan migrate --force && php artisan storage:link && (php artisan reverb:start --host=0.0.0.0 --port=8080 & php artisan queue:work --queue=default --tries=3 & php artisan serve --host=0.0.0.0 --port=$PORT)"
   }
 }
